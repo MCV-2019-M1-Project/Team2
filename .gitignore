@@ -1,0 +1,21 @@
+# Database Folder
+database/
+
+# Query Datasets
+qs1/
+qs2/
+
+# Virtual Envs
+.env/
+.venv/
+env/
+venv/
+
+# Compilation
+__pycache__/
+.ipynb_checkpoints
+
+# Program Folders
+.dist/
+.vscode/
+.DS_Store
