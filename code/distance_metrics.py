@@ -17,16 +17,16 @@ def manhattan_distance(x,y):
 		>- Returns: The manhattan distance (also known as L1 norm) between the two arrays."""
 	return np.sum(np.abs(np.subtract(x,y)),axis=-1)
 	
-def cosine_distance(x,y):
+def cosine_distance(x,y,eps=1e-10):
 	"""FUNCTION::COSINE_DISTANCE:
         >- Returns: The cosine distance between two arrays."""
-	return np.dot(x,y)/(np.linalg.norm(x)*np.linalg.norm(y))
+	return np.dot(x,y)/(np.linalg.norm(x)*np.linalg.norm(y)+eps)
 
-def chi_squared_distance(x,y):
-    """FUNCTION::CHI_SQUARED_DISTANCE:
+def chi2_distance(x,y,eps=1e-10):
+    """FUNCTION::CHI2_DISTANCE:
         >- Returns: The chi squared distance between two arrays.
         Works well with histograms."""
-    return np.sum((np.power(np.subtract(x,y),2)/np.add(x,y)),axis=-1)
+    return np.sum((np.power(np.subtract(x,y),2)/(np.add(x,y)+eps)),axis=-1)
 
 def histogram_intersection(x,y):
     """FUNCTION::HISTOGRAM_INTERSECTION:
