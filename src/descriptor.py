@@ -54,6 +54,7 @@ class GenerateDescriptors():
 		else:
 			raise NotImplementedError
 		norm_hist = flat_hist/norm
+		# Perform average subsampling.
 		feature = np.zeros_like(norm_hist[0:-1:sub_factor])
 		for i,_ in enumerate(feature[0:-sub_factor]):
 			feature[i]=np.mean(norm_hist[i*sub_factor:(i+1)*sub_factor])
