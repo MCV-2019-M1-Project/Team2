@@ -5,19 +5,16 @@ import numpy as np
 import cv2
 
 # -- UTILITIES -- #
-
 def compute_histogram(img,mask=None,color_space='ycrcb'):
     """FUNCTION::COMPUTE_HISTOGRAM
         >- Returns:  numpy array representing an the histogram of chrominance."""
     if color_space is 'ycrcb':
         img = cv2.cvtColor(img,cv2.COLOR_BGR2YCrCb)
-        histogram = cv2.calcHist([img],[1,2],mask,[256,256],[0,256,0,256])
     elif color_space is 'lab':
         img = cv2.cvtColor(img,cv2.COLOR_BGR2Lab)
-        histogram = cv2.calcHist([img],[1,2],mask,[],[])
     else:
         raise NotImplementedError
-    return histogram
+    return cv2.calcHist([img],[1,2],mask,[256,256],[0,256,0,256])
 
 def extract_features(histogram,norm='lmax',sub_factor=16):
     """FUNCTION::EXTRACT_FEATURES
