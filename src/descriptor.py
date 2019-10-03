@@ -31,8 +31,8 @@ class GenerateDescriptors():
 			pickle.dump(self.results,file)
 		
 	def _compute_histogram(self,img,mask=None,color_space='ycrcb'):
-	"""METHOD::COMPUTE_HISTOGRAM:
-		>- Returns:  numpy array representing an the histogram of chrominance."""
+		"""METHOD::COMPUTE_HISTOGRAM:
+			>- Returns:  numpy array representing an the histogram of chrominance."""
 		if color_space is 'ycrcb':
 			img = cv2.cvtColor(img,cv2.COLOR_BGR2YCrCb)
 		elif color_space is 'lab':
@@ -41,11 +41,13 @@ class GenerateDescriptors():
 			raise NotImplementedError
 		return cv2.calcHist([img],[1,2],mask,[256,256],[0,256,0,256])
 
-	def _extract_features(self,histogram,norm='lmax',sub_factor=16):
-	"""METHOD::EXTRACT_FEATURES:
-		>- Returns: numpy array representing the extracted feature from it's histogram."""
+	def _extract_features(self,histogram,norm='lprob',sub_factor=16):
+		"""METHOD::EXTRACT_FEATURES:
+			>- Returns: numpy array representing the extracted feature from it's histogram."""
 		flat_hist = histogram.flatten()
-		if norm is 'lmax':
+		if norm is 'lprob':
+			norm = np.sum(flat_hist,axis=-1)
+		elif norm is 'lmax':
 			norm = np.max(flat_hist)
 		elif norm is 'l2':
 			norm = np.sqrt(np.sum(np.abs(np.power(flat_hist,2)),axis=-1))
