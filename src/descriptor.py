@@ -16,7 +16,7 @@ class GenerateDescriptors():
 		if masks:
 			self.masks = sorted(glob(data_path+os.sep+'*.png'))
 		else:
-			self.masks = [None]*len(self.filenames)
+			self.masks = [None]
 		self.result = {}
 	
 	def compute_descriptors(self):
@@ -26,7 +26,11 @@ class GenerateDescriptors():
 		print('-------')
 		for k,filename in enumerate(self.filenames):
 			img = cv2.imread(filename)
-			histogram = self._compute_histogram(img,self.masks[k])
+			if self.masks[0] not None:
+				mask = cv2.imread(self.masks[k])
+			else:
+				mask = None
+			histogram = self._compute_histogram(img,mask)
 			feature = self._extract_features(histogram)
 			self.result[k] = feature
 			print('Image ['+str(k)+'] Computed')
