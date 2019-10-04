@@ -11,10 +11,10 @@ import os
 class GenerateDescriptors():
 	"""CLASS::GenerateDescriptors:
 		>- Class in charge of computing the descriptors for all the images from a directory."""
-	def __init__(self,data_path,img_format='jpg',masks=False):
+	def __init__(self,data_path,img_format='jpg',masks=False,mask_path=None):
 		self.filenames = sorted(glob(datapath+os.sep+'*.'+img_format))
 		if masks:
-			self.masks = sorted(glob(data_path+os.sep+'*.png'))
+			self.masks = sorted(glob(mask_path+os.sep+'*.png'))
 		else:
 			self.masks = [None]
 		self.result = {}
@@ -27,7 +27,7 @@ class GenerateDescriptors():
 		for k,filename in enumerate(self.filenames):
 			img = cv2.imread(filename)
 			if self.masks[0] not None:
-				mask = cv2.imread(self.masks[k])
+				mask = cv2.imread(self.masks[k],0)
 			else:
 				mask = None
 			histogram = self._compute_histogram(img,mask)
