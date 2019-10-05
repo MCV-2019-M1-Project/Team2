@@ -3,7 +3,7 @@
 # -- IMPORTS -- #
 from glob import glob
 import numpy as np
-import ml_metrics as mlm
+import ml_metrics as metrics
 import cv2
 import os
 
@@ -21,10 +21,10 @@ class EvaluationT1():
 	def compute_mapatk(self):
 		"""METHOD::COMPUTE_MAPATK:
 			>- Computes the MAPatk score for the results obtained."""
-		new_gt = []
-		for gt in self.gt_corrs:
-			new_gt.append(gt[0])
-		self.scores = self.MAPatK(new_gt,self.query_res))
+		for k in range(len(self.gt_corrs)):
+			self.gt_corrs[k] = self.gt_corrs[k][0][1]
+			self.query_res[k] = self.query_res[k][1:]
+		self.scores = self.MAPatK(self.gt_corrs,self.query_res)
 		print('The score obtained is: ['+str(self.scores)+'].')
 	
 	def MAPatK(self,x,y):
