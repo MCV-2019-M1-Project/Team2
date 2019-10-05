@@ -6,6 +6,7 @@ import numpy as np
 import ml_metrics as metrics
 import cv2
 import os
+import pickle
 
 # -- CLASS TO EVALUATE RESULTS -- #
 class EvaluationT1():
@@ -16,16 +17,16 @@ class EvaluationT1():
 			self.query_res = pickle.load(query_res)
 		with open(gt_corr_path,'rb') as gt_corrs:
 			self.gt_corrs = pickle.load(gt_corrs)
-		self.scores = 0
+		self.score = 0
 	
 	def compute_mapatk(self):
 		"""METHOD::COMPUTE_MAPATK:
 			>- Computes the MAPatk score for the results obtained."""
 		for k in range(len(self.gt_corrs)):
-			self.gt_corrs[k] = self.gt_corrs[k][0][1]
+			self.gt_corrs[k] = self.gt_corrs[k][0][1:]
 			self.query_res[k] = self.query_res[k][1:]
-		self.scores = self.MAPatK(self.gt_corrs,self.query_res)
-		print('The score obtained is: ['+str(self.scores)+'].')
+		self.score = self.MAPatK(self.gt_corrs,self.query_res)
+		print('The score obtained is: ['+str(self.score)+'].')
 	
 	def MAPatK(self,x,y):
 		"""
@@ -56,19 +57,23 @@ class EvaluationT5():
 	"""CLASS::EvaluationT5:
 		>- Class to evaluate the masks of task 5."""
 	def __init__(self,res_path,gt_path):
-		self.res = sorted(glob(mask_res_path+os.sep+'*.png'))
-		self.gt = sorted(glob(gt_path+op.sep+'*.png'))
-		self.scores = []
+		self.res = sorted(glob(res_path+os.sep+'*.png'))
+		self.gt = sorted(glob(gt_path+os.sep+'*.png'))
+		self.score = 0
 
 	def compute_fscore(self):
 		"""METHOD::COMPUTE_FSCORE:
 			>- Uses the function F1_measure to compute the fscore of each pair of masks."""
 		for gt,res in zip(self.gt,self.res):
 			gt_mask = cv2.imread(gt,0)
+			_, gt_mask = cv2.threshold(gt_mask, 127, 255, cv2.THRESH_BINARY)
+			gt_mask = np.asarray(gt_mask,dtype=bool)
 			res_mask = cv2.imread(res,0)
-			self.scores.append(self.F1_measure(gt_mask,res_mask))
-		self.scores = self.scores/len(self.gt)
-		print('The score obtained is: ['+str(self.scores)+'].')
+			_, res_mask = cv2.threshold(res_mask, 127, 255, cv2.THRESH_BINARY)
+			res_mask = np.asarray(res_mask,dtype=bool)
+			self.score += self.F1_measure(gt_mask,res_mask)
+		self.score = self.score/len(self.gt)
+		print('The score obtained is: ['+str(self.score)+'].')
 
 	def F1_measure(self,gt,res):
 		"""

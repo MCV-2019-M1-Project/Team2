@@ -23,10 +23,10 @@ class Searcher():
 		# iterate through the query features
 		print('--- SEARCHING MOST SIMILAR --- ')
 		print('-------')
-		for qimg,qfeat in self.query:
+		for qimg,qfeat in self.query.items():
 			distances = []
 			# iterate through the db features
-			for dimg,dfeat in self.data:
+			for dimg,dfeat in self.data.items():
 				# compute distance
 				result = {'name':dimg,'dist':distance_metrics.chi2_distance(qfeat,dfeat)}
 				distances.append(result)
