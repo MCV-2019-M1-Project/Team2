@@ -12,7 +12,7 @@ class GenerateDescriptors():
 	"""CLASS::GenerateDescriptors:
 		>- Class in charge of computing the descriptors for all the images from a directory."""
 	def __init__(self,data_path,img_format='jpg',masks=False,mask_path=None):
-		self.filenames = sorted(glob(datapath+os.sep+'*.'+img_format))
+		self.filenames = sorted(glob(data_path+os.sep+'*.'+img_format))
 		if masks:
 			self.masks = sorted(glob(mask_path+os.sep+'*.png'))
 		else:
@@ -26,8 +26,8 @@ class GenerateDescriptors():
 		print('-------')
 		for k,filename in enumerate(self.filenames):
 			img = cv2.imread(filename)
-			if self.masks[k] not None:
-				mask = cv2.imread(self.masks[k],0)
+			if self.masks[k] is not None:
+				mask = [cv2.imread(self.masks[k],0)]
 			else:
 				mask = self.masks[k]
 			histogram = self._compute_histogram(img,mask)
@@ -52,7 +52,7 @@ class GenerateDescriptors():
 			img = cv2.cvtColor(img,cv2.COLOR_BGR2Lab)
 		else:
 			raise NotImplementedError
-		return cv2.calcHist([img],[1,2],[mask],[256,256],[0,256,0,256])
+		return cv2.calcHist([img],[1,2],mask,[256,256],[0,256,0,256])
 
 	def _extract_features(self,histogram,norm='l1',sub_factor=16):
 		"""METHOD::EXTRACT_FEATURES:
@@ -67,4 +67,3 @@ class GenerateDescriptors():
 		for i,_ in enumerate(feature[0:-sub_factor]):
 			feature[i]=np.mean(flat_hist[i*sub_factor:(i+1)*sub_factor])
 		return feature
-		 

@@ -1,7 +1,6 @@
 # -- CLASS TO MAKE THE SEARCH -- #
 
 # import the necessary packages
-from MAPatK import MAPatK
 import distance_metrics
 import numpy as np
 import pickle
