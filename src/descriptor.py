@@ -16,7 +16,7 @@ class GenerateDescriptors():
 		if masks:
 			self.masks = sorted(glob(mask_path+os.sep+'*.png'))
 		else:
-			self.masks = [None]
+			self.masks = [None]*len(self.filenames)
 		self.result = {}
 	
 	def compute_descriptors(self):
@@ -26,10 +26,10 @@ class GenerateDescriptors():
 		print('-------')
 		for k,filename in enumerate(self.filenames):
 			img = cv2.imread(filename)
-			if self.masks[0] not None:
+			if self.masks[k] not None:
 				mask = cv2.imread(self.masks[k],0)
 			else:
-				mask = None
+				mask = self.masks[k]
 			histogram = self._compute_histogram(img,mask)
 			feature = self._extract_features(histogram)
 			self.result[k] = feature
@@ -54,10 +54,10 @@ class GenerateDescriptors():
 			raise NotImplementedError
 		return cv2.calcHist([img],[1,2],[mask],[256,256],[0,256,0,256])
 
-	def _extract_features(self,histogram,norm='lprob',sub_factor=16):
+	def _extract_features(self,histogram,norm='l1',sub_factor=16):
 		"""METHOD::EXTRACT_FEATURES:
 			>- Returns: numpy array representing the extracted feature from it's histogram."""
-		if norm is 'lprob':
+		if norm is 'l1':
 			norm_hist = cv2.normalize(histogram,histogram,norm_type=cv2.NORM_L1)
 		if norm is 'l2':
 			norm_hist = cv2.normalize(histogram,histogram,norm_type=cv2.NORM_L2)
