@@ -34,7 +34,9 @@ class Searcher():
 			# make a list with all the distances from one query
 			less_dist = sorted(distances, key=lambda k: k['dist'])
 			# get the first 10 images from the db for that query image
-			self.results.append([less_dist[k]['name'] for k in range(limit)])
+			retrieve = [less_dist[k]['name'] for k in range(limit)]
+			retrieve.insert(0,qimg)
+			self.results.append(retrieve)
 			print('Image ['+str(qimg)+'] Processed.')
 			print('-------')
 
