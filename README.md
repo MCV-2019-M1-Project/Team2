@@ -7,5 +7,5 @@ For the first phase, the CBIR need to be able to detect similar images based onl
 - [x] Implement / Compute similarity measures to compare images
 - [x] Implement retrieval system for K images.
 - [x] Evaluation using map@k
-- [ ] Background removal using color information to then compute descriptors on foreground.
+- [x] Background removal using color information to then compute descriptors on foreground
 - [x] Evaluation of picture masks and retrieval system for QS2
