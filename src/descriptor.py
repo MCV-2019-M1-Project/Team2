@@ -19,9 +19,10 @@ class GenerateDescriptors():
 			self.masks = [None]*len(self.filenames)
 		self.result = {}
 	
-	def compute_descriptors(self):
+	def compute_descriptors(self,quantify=[128,64,64]):
 		"""METHOD::COMPUTE_DESCRIPTORS:
 			Computes for each image on the specified data path the correspondant descriptor."""
+		self.quantify = quantify
 		print('--- COMPUTING DESCRIPTORS --- ')
 		print('-------')
 		for k,filename in enumerate(self.filenames):
@@ -43,7 +44,7 @@ class GenerateDescriptors():
 			pickle.dump(self.result,file)
 		print('--- DESCRIPTORS SAVED ---')
 		
-	def _compute_histogram(self,img,mask,color_space='hsv',quantify=[128,64,64]):
+	def _compute_histogram(self,img,mask,color_space='hsv'):
 		"""METHOD::COMPUTE_HISTOGRAM:
 			>- Returns:  numpy array representing an the histogram of chrominance."""
 		if color_space is 'ycrcb':
@@ -54,7 +55,7 @@ class GenerateDescriptors():
 			img = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
 		else:
 			raise NotImplementedError
-		return cv2.calcHist([img],[0,1,2],mask,quantify,[0,256,0,256,0,256])
+		return cv2.calcHist([img],[0,1,2],mask,self.quantify,[0,256,0,256,0,256])
 
 	def _extract_features(self,histogram,norm='l1',sub_factor=16):
 		"""METHOD::EXTRACT_FEATURES:
@@ -79,9 +80,10 @@ class GenerateDescriptorsGrid():
 			self.masks = [None]*len(self.filenames)
 		self.result = {}
 
-	def compute_descriptors(self,grid_blocks=[3,3]):
+	def compute_descriptors(self,grid_blocks=[3,3],quantify=[12,6,6]):
 		"""METHOD::COMPUTE_DESCRIPTORS:
 			Computes for each image on the specified data path the correspondant descriptor."""
+		self.quantify = quantify
 		print('--- COMPUTING DESCRIPTORS --- ')
 		print('-------')
 		for k,filename in enumerate(self.filenames):
@@ -112,7 +114,7 @@ class GenerateDescriptorsGrid():
 			pickle.dump(self.result,file)
 		print('--- DESCRIPTORS SAVED ---')
 		
-	def _compute_histogram(self,img,mask,color_space='hsv',quantify=[12,6,6]):
+	def _compute_histogram(self,img,mask,color_space='hsv'):
 		"""METHOD::COMPUTE_HISTOGRAM:
 			>- Returns:  numpy array representing an the histogram of chrominance."""
 		if color_space is 'ycrcb':
@@ -123,7 +125,7 @@ class GenerateDescriptorsGrid():
 			img = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
 		else:
 			raise NotImplementedError
-		return cv2.calcHist([img],[0,1,2],mask,quantify,[0,256,0,256,0,256])
+		return cv2.calcHist([img],[0,1,2],mask,self.quantify,[0,256,0,256,0,256])
 
 	def _extract_features(self,histogram,norm='l1',sub_factor=1):
 		"""METHOD::EXTRACT_FEATURES:
