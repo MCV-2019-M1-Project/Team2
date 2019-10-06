@@ -4,7 +4,9 @@ database/
 # Query Datasets
 qs1/
 qs2/
-results/QS2_masks
+results/
+qs1t/
+qs2t/
 
 # Virtual Envs
 .env/
