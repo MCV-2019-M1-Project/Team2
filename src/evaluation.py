@@ -26,7 +26,7 @@ class EvaluationT1():
 			self.gt_corrs[k] = self.gt_corrs[k][0][1:]
 			self.query_res[k] = self.query_res[k][1:]
 		self.score = self.MAPatK(self.gt_corrs,self.query_res)
-		print('The score obtained is: ['+str(self.score)+'].')
+		print('The score obtained with MAP@k is: ['+str(self.score)+'].')
 	
 	def MAPatK(self,x,y):
 		"""
@@ -73,7 +73,7 @@ class EvaluationT5():
 			res_mask = np.asarray(res_mask,dtype=bool)
 			self.score += self.F1_measure(gt_mask,res_mask)
 		self.score = self.score/len(self.gt)
-		print('The score obtained is: ['+str(self.score)+'].')
+		print('The F_Score obtained for the masks is: ['+str(self.score)+'].')
 
 	def F1_measure(self,gt,res):
 		"""
