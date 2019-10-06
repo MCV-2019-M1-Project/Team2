@@ -21,10 +21,10 @@ if __name__ == '__main__':
     if option not in available:
         raise Exception('Option not supported')
 
+    db_descriptor = GenerateDescriptorsGrid(db_root)
     # -- TEST QS1 -- #
     if option is 1:
         # -- GENERATE DESCRIPTORS FOR DB -- #
-        db_descriptor = GenerateDescriptorsGrid(db_root)
         db_descriptor.compute_descriptors(grid_blocks=[5,5])
         db_descriptor.save_results(results_root,'db_desc1.pkl')
 
