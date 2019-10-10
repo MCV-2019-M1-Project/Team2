@@ -1,5 +1,6 @@
 import os
 from glob import glob
+from distance_metrics import mse
 import cv2
 import numpy as np
 import time
@@ -12,23 +13,6 @@ Annotations
 - Do not use BackgroundMask5 or BackgroundMask6
 - Function BackgroundMask2 is way slower than BackgroundMask1, but it works better.
 """
-
-
-def MSE(a,b,axis):
-    """
-    This function computes the MSE between a and b along the specified axis.
-
-    Parameters
-    ----------
-    a : Numpy array.
-
-    b : Numpy array.
-
-    Returns
-    -------
-    Numpy array containing the MSE computation between a and b along the specified axis.
-    """
-    return ((a-b)**2).mean(axis=axis)
 
 def GetForegroundPixels(img,mask):
     """
@@ -72,7 +56,7 @@ def BackgroundMask1(img):
     # Create bg image, compute MSE between img_uv and bg_img at each pixel, threshold at min_distance so that
     # mask at > min_distance = 1
     bg_img = np.ones(shape=img_uv.shape,dtype=np.uint8)*average_estimate_bg_color
-    mask = MSE(img_uv,bg_img,axis=2)
+    mask = mse(img_uv,bg_img,axis=2)
     min_distance = 5
     _,mask = cv2.threshold(mask, min_distance, 255, cv2.THRESH_BINARY)
 
@@ -179,9 +163,9 @@ def BackgroundMask2(img):
                         average_estimate_bg_color = img_uv[row_ind,-1,:]
             bg_img[row_ind,col_ind] = average_estimate_bg_color
 
-    # Compute MSE between img_uv and bg_img at each pixel, threshold at min_distance so that
+    # Compute mse between img_uv and bg_img at each pixel, threshold at min_distance so that
     # mask at > min_distance = 1
-    mask = MSE(img_uv,bg_img,axis=2)
+    mask = mse(img_uv,bg_img,axis=2)
     min_distance = 5 # 5
     _,mask = cv2.threshold(mask, min_distance, 255, cv2.THRESH_BINARY)
 
@@ -204,7 +188,7 @@ def BackgroundMask3(img):
     img_yuv = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
 
     # Find contours of the rectangle, using only UV channels
-    img_uv = img_yuv[:,:,:]
+    img_uv = img_yuv[:,:,1:2]
     min_change = 10
     percent = 0.02
     x1,x2,y1,y2 = [int(img_uv.shape[0]*percent),int(img_uv.shape[0]*(1-percent)),int(img_uv.shape[1]*percent),int(img_uv.shape[1]*(1-percent))]
@@ -212,28 +196,28 @@ def BackgroundMask3(img):
     for row_ind in range(int(img_uv.shape[0]*percent),img_uv.shape[0]):
         current = np.mean(img_uv[row_ind,int(img_uv.shape[1]*(0.5-percent/2)):int(img_uv.shape[1]*(0.5+percent/2))],axis=0)
         previous = np.mean(img_uv[row_ind-1,int(img_uv.shape[1]*0.49):int(img_uv.shape[1]*0.51)],axis=0)
-        if MSE(current,previous,axis=0) > min_change:
+        if mse(current,previous,axis=0) > min_change:
             x1 = row_ind
             break
     # -- down
     for row_ind in range(int(img_uv.shape[0]*(1-percent)),0,-1):
         current = np.mean(img_uv[row_ind,int(img_uv.shape[1]*(0.5-percent/2)):int(img_uv.shape[1]*(0.5+percent/2))],axis=0)
         previous = np.mean(img_uv[row_ind+1,int(img_uv.shape[1]*(0.5-percent/2)):int(img_uv.shape[1]*(0.5+percent/2))],axis=0)
-        if MSE(current,previous,axis=0) > min_change:
+        if mse(current,previous,axis=0) > min_change:
             x2 = row_ind
             break
     # -- left
     for col_ind in range(1,img_uv.shape[1]):
         current = np.mean(img_uv[int(img_uv.shape[0]*(0.5-percent/2)):int(img_uv.shape[0]*(0.5+percent/2)),col_ind],axis=0)
         previous = np.mean(img_uv[int(img_uv.shape[0]*(0.5-percent/2)):int(img_uv.shape[0]*(0.5+percent/2)),col_ind-1],axis=0)
-        if MSE(current,previous,axis=0) > min_change:
+        if mse(current,previous,axis=0) > min_change:
             y1 = col_ind
             break
     # -- right
     for col_ind in range(img_uv.shape[1]-2,0,-1):
         current = np.mean(img_uv[int(img_uv.shape[0]*(0.5-percent/2)):int(img_uv.shape[0]*(0.5+percent/2)),col_ind],axis=0)
         previous = np.mean(img_uv[int(img_uv.shape[0]*(0.5-percent/2)):int(img_uv.shape[0]*(0.5+percent/2)),col_ind+1],axis=0)
-        if MSE(current,previous,axis=0) > min_change:
+        if mse(current,previous,axis=0) > min_change:
             y2 = col_ind
             break
 
