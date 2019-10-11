@@ -8,8 +8,8 @@ import cv2
 import os
 
 # -- CLASS TO GENERATE THE DESCRIPTORS FOR EACH IMAGE -- #
-class GenerateSubBlockDescriptor():
-	"""CLASS::GenerateSubBlockDescriptor:
+class SubBlockDescriptor():
+	"""CLASS::SubBlockDescriptor:
 		>- Class in charge of computing the descriptors for all the images from a directory.
 		This class divides the image in sub-blocks to compute the descriptors at each sub-blok and then extend the results"""
 	def __init__(self,data_path,img_format='jpg',masks=False,mask_path=None):
@@ -64,11 +64,11 @@ class GenerateSubBlockDescriptor():
 	def _compute_histogram(self,img,mask):
 		"""METHOD::COMPUTE_HISTOGRAM:
 			>- Returns:  numpy array representing an the histogram of chrominance."""
-		if self.color_space is 'ycrcb':
+		if self.color_space == 'ycrcb':
 			img = cv2.cvtColor(img,cv2.COLOR_BGR2YCrCb)
-		elif self.color_space is 'lab':
+		elif self.color_space == 'lab':
 			img = cv2.cvtColor(img,cv2.COLOR_BGR2Lab)
-		elif self.color_space is 'hsv':
+		elif self.color_space == 'hsv':
 			img = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
 		else:
 			raise NotImplementedError
@@ -77,17 +77,17 @@ class GenerateSubBlockDescriptor():
 	def _extract_features(self,histogram,norm='l1',sub_factor=1):
 		"""METHOD::EXTRACT_FEATURES:
 			>- Returns: numpy array representing the extracted feature from its histogram."""
-		if norm is 'l1':
+		if norm == 'l1':
 			norm_hist = cv2.normalize(histogram,histogram,norm_type=cv2.NORM_L1)
-		if norm is 'l2':
+		if norm == 'l2':
 			norm_hist = cv2.normalize(histogram,histogram,norm_type=cv2.NORM_L2)
 		flat_hist = norm_hist.flatten()
 		# Perform average subsampling.
 		feature = np.mean(flat_hist.reshape(-1, sub_factor), 1)
 		return feature
 
-class GenerateLevelDescriptor(GenerateSubBlockDescriptor):
-	"""CLASS::GenerateLevelDescriptor:
+class LevelDescriptor(SubBlockDescriptor):
+	"""CLASS::LevelDescriptor:
 		>- Class in charge of computing the descriptors for all the images from a directory."""
 	def __init__(self,data_path,img_format='jpg',masks=False,mask_path=None):
 		super().__init__(data_path,img_format,masks,mask_path)
@@ -107,7 +107,7 @@ class GenerateLevelDescriptor(GenerateSubBlockDescriptor):
 				mask = self.masks[k]
 			features = []
 			grid_blocks = np.array([1,1])
-			for l in range(level):
+			for l in range(levels):
 				feature = self._compute_level(grid_blocks.tolist(),img,mask)
 				features.extend(feature)
 				self.quantify/2

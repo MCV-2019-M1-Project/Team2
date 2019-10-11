@@ -19,14 +19,16 @@ class EvaluationT1():
 			self.gt_corrs = pickle.load(gt_corrs)
 		self.score = 0
 	
-	def compute_mapatk(self):
+	def compute_mapatk(self,limit=3):
 		"""METHOD::COMPUTE_MAPATK:
 			>- Computes the MAPatk score for the results obtained."""
+		gt = []
+		query = []
 		for k in range(len(self.gt_corrs)):
-			self.gt_corrs[k] = self.gt_corrs[k][0][1:]
-			self.query_res[k] = self.query_res[k][1:]
-		self.score = self.MAPatK(self.gt_corrs,self.query_res)
-		print('The score obtained with MAP@k is: ['+str(self.score)+'].')
+			gt.append(self.gt_corrs[k][0][1:])
+			query.append(self.query_res[k][0:limit])
+		self.score = self.MAPatK(gt,query)
+		print('The score obtained with MAP@'+str(limit)+' is: ['+str(self.score)+'].')
 	
 	def MAPatK(self,x,y):
 		"""
