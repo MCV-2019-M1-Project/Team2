@@ -94,7 +94,8 @@ class GenerateLevelDescriptor(GenerateSubBlockDescriptor):
 	
 	def compute_descriptors(self,levels=3,init_quant=[64,32,32],color_space='hsv'):
 		self.quantify = np.asarray(init_quant)
-		if np.max(self.quantify)
+		if np.min(self.quantify)/np.power(2,levels) <= 0:
+			raise ValueError('The amount of levels are bigger than the quantification steps.')
 		self.color_space = color_space
 		print('--- COMPUTING DESCRIPTORS --- ')
 		print('-------')
