@@ -22,7 +22,6 @@ class Searcher():
 			Searches the k number of features more similar from the query set."""
 		# iterate through the query features
 		print('--- SEARCHING MOST SIMILAR --- ')
-		print('-------')
 		for qimg,qfeat in self.query.items():
 			distances = []
 			# iterate through the db features
@@ -35,7 +34,6 @@ class Searcher():
 			# get the first 10 images from the db for that query image
 			retrieve = [less_dist[k]['name'] for k in range(limit)]
 			self.results.append(retrieve)
-			print('Image ['+str(qimg)+'] Processed.')
 			print('-------')
 
 	def save_results(self,out_path,filename):

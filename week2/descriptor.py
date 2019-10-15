@@ -26,7 +26,6 @@ class SubBlockDescriptor():
 		self.quantify = quantify
 		self.color_space = color_space
 		print('--- COMPUTING DESCRIPTORS --- ')
-		print('-------')
 		for k,filename in enumerate(self.filenames):
 			img = cv2.imread(filename)
 			if self.masks[k] is not None:
@@ -34,8 +33,7 @@ class SubBlockDescriptor():
 			else:
 				mask = self.masks[k]
 			self.result[k] = self._compute_level(grid_blocks,img,mask)
-			print('Image ['+str(k)+'] Computed')
-			print('-------')
+		print('--- DONE --- ')
 
 	def save_results(self,out_path,filename):
 		"""METHOD::SAVE_RESULTS:
@@ -92,13 +90,12 @@ class LevelDescriptor(SubBlockDescriptor):
 	def __init__(self,data_path,img_format='jpg',masks=False,mask_path=None):
 		super().__init__(data_path,img_format,masks,mask_path)
 	
-	def compute_descriptors(self,levels=3,init_quant=[64,32,32],color_space='hsv'):
+	def compute_descriptors(self,levels=3,init_quant=[16,8,8],start=3,jump=2,color_space='hsv'):
 		self.quantify = np.asarray(init_quant)
 		if np.min(self.quantify)/np.power(2,levels) <= 0:
 			raise ValueError('The amount of levels are bigger than the quantification steps.')
 		self.color_space = color_space
 		print('--- COMPUTING DESCRIPTORS --- ')
-		print('-------')
 		for k,filename in enumerate(self.filenames):
 			img = cv2.imread(filename)
 			if self.masks[k] is not None:
@@ -106,12 +103,10 @@ class LevelDescriptor(SubBlockDescriptor):
 			else:
 				mask = self.masks[k]
 			features = []
-			grid_blocks = np.array([1,1])
+			grid_blocks = np.array([start,start])
 			for l in range(levels):
 				feature = self._compute_level(grid_blocks.tolist(),img,mask)
 				features.extend(feature)
-				self.quantify/2
-				grid_blocks*2
+				grid_blocks*jump
 			self.result[k] = features
-			print('Image ['+str(k)+'] Computed')
-			print('-------')
+		print('--- DONE --- ')

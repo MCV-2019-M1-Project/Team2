@@ -2,16 +2,16 @@
 
 from descriptor import SubBlockDescriptor, LevelDescriptor
 from searcher import Searcher
-from evaluation import EvaluationT1,EvaluationT5
+from evaluation import EvaluationT1
 import argparse
 import os
 
 # -- EXAMPLE OF EXECUTION -- #
 
 """ TESTING METHOD 1: 
-    python3 test_descriptors.py -o 0 -s int int{[2,2]} -q int int int{[32,32,32]} -c string_color_space
-    TESTING METHOD 2:
-    python3 test_descriptors.py -o 1 -l int{number of levels} -q int int int{[32,32,32]} -c string_color_space"""
+	python3 test_descriptors.py -o 0 -s int int{[2,2]} -q int int int{[32,32,32]} -c string_color_space
+	TESTING METHOD 2:
+	python3 test_descriptors.py -o 1 -l int{number of levels} -q int int int{[32,32,32]} -c string_color_space"""
 
 # -- DIRECTORIES -- #
 db = '../database'
@@ -24,91 +24,92 @@ res_root = '../results'
 
 # -- PARAMETERS  #
 def get_arguments():
-    parser = argparse.ArgumentParser(description='descriptor')
-    parser.add_argument('-o','--option',type=int,required=True)
-    parser.add_argument('-s','--size',type=int,nargs='+')
-    parser.add_argument('-l','--level',type=int)
-    parser.add_argument('-q','--quantize',type=int,nargs='+',required=True)
-    parser.add_argument('-c','--color',type=str,required=True)
-    return parser.parse_args()
+	parser = argparse.ArgumentParser(description='descriptor')
+	parser.add_argument('-o','--option',type=int,required=True,choices=[0,1])
+	parser.add_argument('-s','--start',type=int,nargs='+')
+	parser.add_argument('-l','--level',type=int)
+	parser.add_argument('-j','--jump',type=int)
+	parser.add_argument('-q','--quantize',type=int,nargs='+',required=True)
+	parser.add_argument('-c','--color',type=str,required=True)
+	return parser.parse_args()
 
+def test_sub_blocks():
+	start = [2,3,4,5,8,10]
+	quant = [[12,6,6],[16,8,8],[24,12,12]]
+	color = ['hsv']
+	res_q1 = []
+	res_q2 = []
+	for s in start:
+		for q in quant:
+			print('--- # -- ')
+			db_desc = SubBlockDescriptor(db)
+			q1_desc = SubBlockDescriptor(qs1_w1)
+			q2_desc = SubBlockDescriptor(qs2_w1,masks=True,mask_path=mask_root)
+			db_desc.compute_descriptors(grid_blocks=[s,s],quantify=q,color_space=color[0])
+			q1_desc.compute_descriptors(grid_blocks=[s,s],quantify=q,color_space=color[0])
+			q2_desc.compute_descriptors(grid_blocks=[s,s],quantify=q,color_space=color[0])
+			db_desc.save_results(res_root,'db_sub.pkl')
+			q1_desc.save_results(res_root,'q1_sub.pkl')
+			q2_desc.save_results(res_root,'q2_sub.pkl')
+			# -- SEARCH -- #
+			q1_search = Searcher(res_root+os.sep+'db_sub.pkl',res_root+os.sep+'q1_sub.pkl')
+			q2_search = Searcher(res_root+os.sep+'db_sub.pkl',res_root+os.sep+'q2_sub.pkl')
+			q1_search.search(limit=3)
+			q2_search.search(limit=3)
+			q1.save_results(res_root,'q1_sres.pkl')
+			q2.save_results(res_root,'q2_sres.pkl')
+			# -- EVALUATION -- #
+			q1_eval = EvaluationT1(res_root+os.sep+'q1_sres.pkl',qs1_w1+os.sep+'gt.corresps.pkl')
+			q2_eval = EvaluationT1(res_root+os.sep+'q2_sres.pkl',qs2_w1+os.sep+'gt.corresps.pkl')
+			res_q1.append({'s':s,'q':q,'c':color[0],'r':q1_eval.compute_mapatk(limit=1)})
+			res_q2.append({'s':s,'q':q,'c':color[0],'r':q2_eval.compute_mapatk(limit=1)})
+			print('--- # -- ')
+	with open('final_sub_res.pkl','wb') as f:
+		pickle.dump(res_q1,f)
+		pickle.dump(res_q2,f)
+
+def test_level_desc():
+	level = [2,3]
+	start = [2,3,5,8,10]
+	jump = [2,4]
+	quant = [[12,6,6],[16,8,8],[24,12,12]]
+	color = ['hsv']
+	res_q1 = []
+	res_q2 = []
+	for l in level:
+		for s in start:
+			for j in jump:
+				for q in quant:
+					print('--- # -- ')
+					db_desc = LevelDescriptor(db)
+					q1_desc = LevelDescriptor(qs1_w1)
+					q2_desc = LevelDescriptor(qs2_w1,masks=True,mask_path=mask_root)
+					db_desc.compute_descriptors(levels=l,init_quant=q,start=s,jump=j,color_space=color[0])
+					q1_desc.compute_descriptors(levels=l,init_quant=q,start=s,jump=j,color_space=color[0])
+					q2_desc.compute_descriptors(levels=l,init_quant=q,start=s,jump=j,color_space=color[0])
+					db_desc.save_results(res_root,'db_lev.pkl')
+					q1_desc.save_results(res_root,'q1_lev.pkl')
+					q2_desc.save_results(res_root,'q2_lev.pkl')
+					# -- SEARCH -- #
+					q1_search = Searcher(res_root+os.sep+'db_lev.pkl',res_root+os.sep+'q1_lev.pkl')
+					q2_search = Searcher(res_root+os.sep+'db_lev.pkl',res_root+os.sep+'q2_lev.pkl')
+					q1_search.search(limit=3)
+					q2_search.search(limit=3)
+					q1.save_results(res_root,'q1_lres.pkl')
+					q2.save_results(res_root,'q2_lres.pkl')
+					# -- EVALUATION -- #
+					q1_eval = EvaluationT1(res_root+os.sep+'q1_lres.pkl',qs1_w1+os.sep+'gt.corresps.pkl')
+					q2_eval = EvaluationT1(res_root+os.sep+'q2_lres.pkl',qs2_w1+os.sep+'gt.corresps.pkl')
+					res_q1.append({'s':s,'q':q,'c':color[0],'j':j,'l':l,'r':q1_eval.compute_mapatk(limit=1)})
+					res_q2.append({'s':s,'q':q,'c':color[0],'j':j,'l':l,'r':q2_eval.compute_mapatk(limit=1)})
+					print('--- # -- ')
+	with open('final_lev_res.pkl','wb') as f:
+		pickle.dump(res_q1,f)
+		pickle.dump(res_q2,f)
+		
 if __name__ == '__main__':
-    args = get_arguments()
-    if args.option == 0:
-        if args.size == None:
-            raise ValueError('The input -s needs a value')
-        # -- GENERATE DESCRIPTORS FOR DB -- #
-        db_descriptor = SubBlockDescriptor(db)
-        db_descriptor.compute_descriptors(grid_blocks=args.size,quantify=args.quantize,color_space=args.color)
-        db_descriptor.save_results(res_root,'db_sub.pkl')
-
-        # -- GENERATE DECRIPTORS FOR QS1 -- #
-        qs1_descriptor = SubBlockDescriptor(qs1_w1)
-        qs1_descriptor.compute_descriptors(grid_blocks=args.size,quantify=args.quantize,color_space=args.color)
-        qs1_descriptor.save_results(res_root,'qs1_sub.pkl')
-
-        # -- SEARCH MOST SIMILAR FOR QS1 -- #
-        qs1_searcher = Searcher(data_path=res_root+os.sep+"db_sub.pkl",query_path=res_root+os.sep+"qs1_sub.pkl")
-        qs1_searcher.search(limit=3)
-        qs1_searcher.save_results(res_root,"qs1_rsub.pkl")
-
-        # -- EVALUATE RESULTS FOR TASK1 FOR QS1 -- #
-        eval_t1 = EvaluationT1(query_res_path=res_root+os.sep+"qs1_rsub.pkl",gt_corr_path=res_root+os.sep+"gt_corresps1.pkl")
-
-        # -- GENERATE DECRIPTORS FOR QS2 -- #
-        qs2_descriptor = SubBlockDescriptor(qs2_w1,masks=True,mask_path=mask_root)
-        qs2_descriptor.compute_descriptors(grid_blocks=args.size,quantify=args.quantize,color_space=args.color)
-        qs2_descriptor.save_results(res_root,'qs2_sub.pkl')
-
-        # -- SEARCH MOST SIMILAR FOR QS2 -- #
-        qs2_searcher = Searcher(data_path=res_root+os.sep+"db_sub.pkl",query_path=res_root+os.sep+"qs2_sub.pkl")
-        qs2_searcher.search(limit=3)
-        qs2_searcher.save_results(res_root,"qs2_rsub.pkl")
-
-        # -- EVALUATE RESULTS FOR TASK1 FOR QS2 -- #
-        eval_t2 = EvaluationT1(query_res_path=res_root+os.sep+"qs2_rsub.pkl",gt_corr_path=res_root+os.sep+"gt_corresps2.pkl")
-
-        # -- SHOW RESULTS -- #
-        eval_t1.compute_mapatk(limit=1)
-        eval_t1.compute_mapatk(limit=3)
-        eval_t2.compute_mapatk(limit=1)
-        eval_t2.compute_mapatk(limit=3)
-    else:
-        if args.level == None:
-            raise ValueError('The input -l needs a value')
-        # -- GENERATE DESCRIPTORS FOR DB -- #
-        db_descriptor = LevelDescriptor(db)
-        db_descriptor.compute_descriptors(levels=args.level,init_quant=args.quantize,color_space=args.color)
-        db_descriptor.save_results(res_root,'db_lev.pkl')
-
-        # -- GENERATE DECRIPTORS FOR QS1 -- #
-        qs1_descriptor = LevelDescriptor(qs1_w1)
-        qs1_descriptor.compute_descriptors(levels=args.level,init_quant=args.quantize,color_space=args.color)
-        qs1_descriptor.save_results(res_root,'qs1_lev.pkl')
-
-        # -- SEARCH MOST SIMILAR FOR QS1 -- #
-        qs1_searcher = Searcher(data_path=res_root+os.sep+"db_lev.pkl",query_path=res_root+os.sep+"qs1_lev.pkl")
-        qs1_searcher.search(limit=3)
-        qs1_searcher.save_results(res_root,"qs1_rlev.pkl")
-
-        # -- EVALUATE RESULTS FOR TASK1 FOR QS1 -- #
-        eval_t1 = EvaluationT1(query_res_path=res_root+os.sep+"qs1_rlev.pkl",gt_corr_path=res_root+os.sep+"gt_corresps1.pkl")
-
-        # -- GENERATE DECRIPTORS FOR QS2 -- #
-        qs2_descriptor = LevelDescriptor(qs2_w1,masks=True,mask_path=mask_root)
-        qs2_descriptor.compute_descriptors(levels=args.level,init_quant=args.quantize,color_space=args.color)
-        qs2_descriptor.save_results(res_root,'qs2_lev.pkl')
-
-        # -- SEARCH MOST SIMILAR FOR QS2 -- #
-        qs2_searcher = Searcher(data_path=res_root+os.sep+"db_lev.pkl",query_path=res_root+os.sep+"qs2_lev.pkl")
-        qs2_searcher.search(limit=3)
-        qs2_searcher.save_results(res_root,"qs2_rlev.pkl")
-
-        # -- EVALUATE RESULTS FOR TASK1 FOR QS2 -- #
-        eval_t2 = EvaluationT1(query_res_path=res_root+os.sep+"qs2_rlev.pkl",gt_corr_path=res_root+os.sep+"gt_corresps2.pkl")
-
-        # -- SHOW RESULTS -- #
-        eval_t1.compute_mapatk(limit=1)
-        eval_t1.compute_mapatk(limit=3)
-        eval_t2.compute_mapatk(limit=1)
-        eval_t2.compute_mapatk(limit=3)
+	print('--- SUB-BLOCKS -- ')
+	test_sub_blocks()
+	print('--- LEVEL -- ')
+	test_level_desc()
+	

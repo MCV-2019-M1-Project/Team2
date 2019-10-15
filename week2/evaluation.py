@@ -28,7 +28,6 @@ class EvaluationT1():
 			gt.append(self.gt_corrs[k][0][1:])
 			query.append(self.query_res[k][0:limit])
 		self.score = self.MAPatK(gt,query)
-		print('The score obtained with MAP@'+str(limit)+' is: ['+str(self.score)+'].')
 	
 	def MAPatK(self,x,y):
 		"""
