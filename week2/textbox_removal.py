@@ -66,7 +66,11 @@ def TextBoxRemoval(img):
                 start_row = last_row_ind+row_length+1
 
     # Deciding which rectangle to use (the one from opening or closing)
-    if rectangles["bright"] is None and rectangles["dark"] is not None:
+    if rectangles["bright"] is None and rectangles["dark"] is None:
+        mask = np.ones(shape=(mask.shape[0],mask.shape[1]),dtype=np.uint8)*255
+        mask = cv2.resize(mask,(original_size[1],original_size[0]))
+        return mask, [[0,0],[mask.shape[1],mask.shape[0]]]
+    elif rectangles["bright"] is None and rectangles["dark"] is not None:
         last_row_ind = rectangles["dark"][0]
         row_length = rectangles["dark"][1]
         last_col_width = rectangles["dark"][2]
@@ -98,9 +102,9 @@ def TextBoxRemoval(img):
     tl[1] = int(tl[1]*original_size[1]/resize_size[1])
     br[0] = int(br[0]*original_size[0]/resize_size[0])
     br[1] = int(br[1]*original_size[1]/resize_size[1])
-    mask = np.zeros(shape=mask.shape,dtype=np.uint8)
+    mask = np.ones(shape=(mask.shape[0],mask.shape[1]),dtype=np.uint8)*255
     mask = cv2.resize(mask,(original_size[1],original_size[0]))
-    mask[tl[0]:br[0],tl[1]:br[1]] = 255
+    mask[tl[0]:br[0],tl[1]:br[1]] = 0
 
     return mask, [tl,br]
 

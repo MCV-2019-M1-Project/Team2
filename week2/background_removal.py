@@ -229,7 +229,8 @@ def BackgroundMask3(img):
 def BackgroundMask4(img):
     # Resize image
     original_size = img.shape[:2]
-    img = cv2.resize(img,(1000,1000))
+    resize_shape = (1000,1000)
+    img = cv2.resize(img,resize_shape)
 
     # Obtain gray level image
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
@@ -247,6 +248,7 @@ def BackgroundMask4(img):
     pict_start_perc = 0.3
     lines_wanted = {"top": [-large_number,large_number,int(pict_start_perc*img.shape[0]),int(pict_start_perc*img.shape[0])], "bottom": [-large_number,large_number,int((1-pict_start_perc)*img.shape[0]),int((1-pict_start_perc)*img.shape[0])], "left": [int(pict_start_perc*img.shape[1]),int(pict_start_perc*img.shape[1]),-large_number,large_number], "right": [int((1-pict_start_perc)*img.shape[1]),int((1-pict_start_perc)*img.shape[1]),-large_number,large_number]}
     last_mask = np.zeros(shape=(original_size[0],original_size[1]),dtype=np.uint8)
+    last_mean_points = {"top":None,"left":None,"bottom":None,"right":None}
     for degrees_margin in [2,5]:
         lines = cv2.HoughLines(edges,1,np.pi/180,150)
         for i in range(len(lines)):
@@ -323,7 +325,6 @@ def BackgroundMask4(img):
                 if np.mean(v[:2]) <= int((1-pict_start_perc)*img.shape[1]):
                     v[0] = int((1-draw_perc_th)*img.shape[1])
                     v[1] = int((1-draw_perc_th)*img.shape[1])
-                print("RIGHT:",np.mean(v[:2]))
             # print(k,np.mean([v[0],v[1]]),np.mean([v[2],v[3]]))
             cv2.line(mask,(v[0],v[2]),(v[1],v[3]),(255,255,255),2)
 
@@ -347,8 +348,12 @@ def BackgroundMask4(img):
         # If new mask contains old mask, we stay with new mask
         if (np.bitwise_or(mask,last_mask) == mask).all():
             last_mask = mask
+            last_mean_points["top"] = int(np.mean(lines_wanted["top"][2:4])*original_size[0]/resize_shape[0])
+            last_mean_points["left"] = int(np.mean(lines_wanted["left"][:2])*original_size[1]/resize_shape[1])
+            last_mean_points["bottom"] = int(np.mean(lines_wanted["bottom"][2:4])*original_size[0]/resize_shape[0])
+            last_mean_points["right"] = int(np.mean(lines_wanted["right"][:2])*original_size[1]/resize_shape[1])
 
-    return last_mask
+    return last_mask, last_mean_points
 
 #Hough lines p
 def BackgroundMask5(img):

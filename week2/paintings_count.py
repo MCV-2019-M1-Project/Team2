@@ -155,8 +155,8 @@ def splitImageInTwo(img_path, cutPoint):
     img = cv2.imread(img_path)
     img1 = img[:,:cutPoint,:]
     img2 = img[:,cutPoint:,:]
-    cv2.imwrite(img_path.replace(".jpg", "_cut1.png"), img1)
-    cv2.imwrite(img_path.replace(".jpg", "_cut2.png"), img2)
+    # cv2.imwrite(img_path.replace(".jpg", "_cut1.png"), img1)
+    # cv2.imwrite(img_path.replace(".jpg", "_cut2.png"), img2)
     return [img1, img2]
 
 class colorRegion(Enum):
@@ -177,6 +177,7 @@ def getListOfPaintings(img_folder,method):
             output.append(splitImageInTwo(img_path, cut))
         else:
             output.append([cv2.imread(img_path)])
+    return output
 
 
 def main(img_folder,method):
