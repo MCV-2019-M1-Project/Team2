@@ -34,7 +34,6 @@ class Searcher():
 			# get the first 10 images from the db for that query image
 			retrieve = [less_dist[k]['name'] for k in range(limit)]
 			self.results.append(retrieve)
-			print('-------')
 
 	def save_results(self,out_path,filename):
 		"""METHOD::SAVE_METHODS:

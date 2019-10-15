@@ -56,11 +56,11 @@ def test_sub_blocks():
 			q2_search = Searcher(res_root+os.sep+'db_sub.pkl',res_root+os.sep+'q2_sub.pkl')
 			q1_search.search(limit=3)
 			q2_search.search(limit=3)
-			q1.save_results(res_root,'q1_sres.pkl')
-			q2.save_results(res_root,'q2_sres.pkl')
+			q1_search.save_results(res_root,'q1_sres.pkl')
+			q2_search.save_results(res_root,'q2_sres.pkl')
 			# -- EVALUATION -- #
-			q1_eval = EvaluationT1(res_root+os.sep+'q1_sres.pkl',qs1_w1+os.sep+'gt.corresps.pkl')
-			q2_eval = EvaluationT1(res_root+os.sep+'q2_sres.pkl',qs2_w1+os.sep+'gt.corresps.pkl')
+			q1_eval = EvaluationT1(res_root+os.sep+'q1_sres.pkl',qs1_w1+os.sep+'gt_corresps.pkl')
+			q2_eval = EvaluationT1(res_root+os.sep+'q2_sres.pkl',qs2_w1+os.sep+'gt_corresps.pkl')
 			res_q1.append({'s':s,'q':q,'c':color[0],'r':q1_eval.compute_mapatk(limit=1)})
 			res_q2.append({'s':s,'q':q,'c':color[0],'r':q2_eval.compute_mapatk(limit=1)})
 			print('--- # -- ')
@@ -95,18 +95,18 @@ def test_level_desc():
 					q2_search = Searcher(res_root+os.sep+'db_lev.pkl',res_root+os.sep+'q2_lev.pkl')
 					q1_search.search(limit=3)
 					q2_search.search(limit=3)
-					q1.save_results(res_root,'q1_lres.pkl')
-					q2.save_results(res_root,'q2_lres.pkl')
+					q1_search.save_results(res_root,'q1_lres.pkl')
+					q2_search.save_results(res_root,'q2_lres.pkl')
 					# -- EVALUATION -- #
-					q1_eval = EvaluationT1(res_root+os.sep+'q1_lres.pkl',qs1_w1+os.sep+'gt.corresps.pkl')
-					q2_eval = EvaluationT1(res_root+os.sep+'q2_lres.pkl',qs2_w1+os.sep+'gt.corresps.pkl')
+					q1_eval = EvaluationT1(res_root+os.sep+'q1_lres.pkl',qs1_w1+os.sep+'gt_corresps.pkl')
+					q2_eval = EvaluationT1(res_root+os.sep+'q2_lres.pkl',qs2_w1+os.sep+'gt_corresps.pkl')
 					res_q1.append({'s':s,'q':q,'c':color[0],'j':j,'l':l,'r':q1_eval.compute_mapatk(limit=1)})
 					res_q2.append({'s':s,'q':q,'c':color[0],'j':j,'l':l,'r':q2_eval.compute_mapatk(limit=1)})
 					print('--- # -- ')
 	with open('final_lev_res.pkl','wb') as f:
 		pickle.dump(res_q1,f)
 		pickle.dump(res_q2,f)
-		
+
 if __name__ == '__main__':
 	print('--- SUB-BLOCKS -- ')
 	test_sub_blocks()
