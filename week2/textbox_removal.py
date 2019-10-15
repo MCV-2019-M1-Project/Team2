@@ -6,14 +6,22 @@ import time
 
         
 def TextBoxRemoval(img):
+    # Parameters
+    resize_size = (1000,1000)
+    rectangle_max_min_difference = 10
+    min_ratio = 0.08
+    thresh_bw_wb = 20
+
     # Resize image
     original_size = img.shape[:2]
-    img = cv2.resize(img,(1000,1000))
+    img = cv2.resize(img,resize_size)
 
+    # Opening and closing separately
     kernel = np.ones((10,50),np.uint8)
     dark = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
     bright = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
 
+    # Search for largest uniform rectangle on both opening and closing
     rectangles = {"bright": None, "dark": None}
     for mask,mask_name in zip([bright, dark],["bright","dark"]):
         finished = False
@@ -27,7 +35,7 @@ def TextBoxRemoval(img):
                 for row_ind in range(start_row,mask.shape[0]-int(0.02*mask.shape[0])):
                     indexes = [row_ind,row_ind+int(0.02*mask.shape[0]),int(0.5*mask.shape[1])-int(col_width*0.5),int(0.5*mask.shape[1])+int(col_width*0.5)]
                     rectangle = mask_gray[indexes[0]:indexes[1],indexes[2]:indexes[3]]
-                    if np.max(rectangle)-np.min(rectangle) < 10:
+                    if np.max(rectangle)-np.min(rectangle) < rectangle_max_min_difference:
                         last_row_ind = row_ind
                         break
                 if last_row_ind != -1:
@@ -40,26 +48,24 @@ def TextBoxRemoval(img):
                 last_col_width = col_width
                 indexes = [last_row_ind,last_row_ind+int(0.02*mask.shape[0]),int(0.5*mask.shape[1])-int(col_width*0.5),int(0.5*mask.shape[1])+int(col_width*0.5)]
                 rectangle = mask_gray[indexes[0]:indexes[1],indexes[2]:indexes[3]]
-                if np.max(rectangle)-np.min(rectangle) > 10:
+                if np.max(rectangle)-np.min(rectangle) > rectangle_max_min_difference:
                     last_col_width = col_width-1
                     break
 
             for row_length in range(int(0.02*mask.shape[0]),mask.shape[0]-int(0.02*mask.shape[0])):
                 indexes = [last_row_ind,last_row_ind+row_length,int(0.5*mask.shape[1])-int(last_col_width*0.5),int(0.5*mask.shape[1])+int(last_col_width*0.5)]
                 rectangle = mask_gray[indexes[0]:indexes[1],indexes[2]:indexes[3]]
-                if np.max(rectangle)-np.min(rectangle) > 10:
+                if np.max(rectangle)-np.min(rectangle) > rectangle_max_min_difference:
                     break
 
-            print(last_row_ind)
-            ratio = (last_row_ind+row_length-last_row_ind)*original_size[0]/((int(0.5*mask.shape[1])+int(last_col_width*0.5)-int(0.5*mask.shape[1])+int(last_col_width*0.5))*original_size[1])
-            print("ratio:",ratio)
-            if ratio > 0.08:
+            ratio = row_length*original_size[0]/((int(0.5*mask.shape[1])+int(last_col_width*0.5)-int(0.5*mask.shape[1])+int(last_col_width*0.5))*original_size[1])
+            if ratio > min_ratio:
                 finished = True
                 rectangles[mask_name] = [last_row_ind,row_length,last_col_width]
             else:
                 start_row = last_row_ind+row_length+1
 
-    # Deciding which rectangle to use
+    # Deciding which rectangle to use (the one from opening or closing)
     if rectangles["bright"] is None and rectangles["dark"] is not None:
         last_row_ind = rectangles["dark"][0]
         row_length = rectangles["dark"][1]
@@ -69,7 +75,6 @@ def TextBoxRemoval(img):
         row_length = rectangles["bright"][1]
         last_col_width = rectangles["bright"][2]
     else:
-        # Case bright
         last_row_ind = rectangles["bright"][0]
         row_length = rectangles["bright"][1]
         last_col_width = rectangles["bright"][2]
@@ -78,9 +83,7 @@ def TextBoxRemoval(img):
         mean_0 = np.mean(bright_rect[:,:,0])
         mean_1 = np.mean(bright_rect[:,:,1])
         mean_2 = np.mean(bright_rect[:,:,2])
-        print(mean_0,mean_1,mean_2)
-        th = 20
-        if np.abs(mean_0-mean_1) > th or np.abs(mean_0-mean_2) > th or np.abs(mean_2-mean_1) > th:
+        if np.abs(mean_0-mean_1) > thresh_bw_wb or np.abs(mean_0-mean_2) > thresh_bw_wb or np.abs(mean_2-mean_1) > thresh_bw_wb:
             last_row_ind = rectangles["dark"][0]
             row_length = rectangles["dark"][1]
             last_col_width = rectangles["dark"][2]
@@ -88,12 +91,19 @@ def TextBoxRemoval(img):
             last_row_ind = rectangles["bright"][0]
             row_length = rectangles["bright"][1]
             last_col_width = rectangles["bright"][2]
-        
-    mask = np.zeros(shape=mask.shape,dtype=np.uint8)
-    mask[last_row_ind:last_row_ind+row_length,int(0.5*mask.shape[1])-int(last_col_width*0.5):int(0.5*mask.shape[1])+int(last_col_width*0.5)] = 255
 
+    tl = [last_row_ind,int(0.5*mask.shape[1])-int(last_col_width*0.5)]
+    br = [last_row_ind+row_length,int(0.5*mask.shape[1])+int(last_col_width*0.5)]
+    tl[0] = int(tl[0]*original_size[0]/resize_size[0])
+    tl[1] = int(tl[1]*original_size[1]/resize_size[1])
+    br[0] = int(br[0]*original_size[0]/resize_size[0])
+    br[1] = int(br[1]*original_size[1]/resize_size[1])
+    mask = np.zeros(shape=mask.shape,dtype=np.uint8)
     mask = cv2.resize(mask,(original_size[1],original_size[0]))
-    return mask
+    mask[tl[0]:br[0],tl[1]:br[1]] = 255
+
+    return mask, [tl,br]
+
 
 def main():
     for img_path in glob(os.path.join(r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week2\qsd1_w2","*.jpg"))[:]:
