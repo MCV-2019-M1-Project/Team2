@@ -3,8 +3,10 @@
 from descriptor import SubBlockDescriptor, LevelDescriptor
 from searcher import Searcher
 from evaluation import EvaluationT1
+from glob import glob
 import argparse
 import os
+import pickle
 
 # -- EXAMPLE OF EXECUTION -- #
 
@@ -34,11 +36,9 @@ def get_arguments():
 	return parser.parse_args()
 
 def test_sub_blocks():
-	start = [2,3,4,5,8,10]
-	quant = [[12,6,6],[16,8,8],[24,12,12]]
-	color = ['hsv']
-	res_q1 = []
-	res_q2 = []
+	start = [2,3,4,5,8]
+	quant = [[8,16,16]]
+	color = ['lab']
 	for s in start:
 		for q in quant:
 			print('--- # -- ')
@@ -59,23 +59,34 @@ def test_sub_blocks():
 			q1_search.save_results(res_root,'q1_sres.pkl')
 			q2_search.save_results(res_root,'q2_sres.pkl')
 			# -- EVALUATION -- #
-			q1_eval = EvaluationT1(res_root+os.sep+'q1_sres.pkl',qs1_w1+os.sep+'gt_corresps.pkl')
-			q2_eval = EvaluationT1(res_root+os.sep+'q2_sres.pkl',qs2_w1+os.sep+'gt_corresps.pkl')
-			res_q1.append({'s':s,'q':q,'c':color[0],'r':q1_eval.compute_mapatk(limit=1)})
-			res_q2.append({'s':s,'q':q,'c':color[0],'r':q2_eval.compute_mapatk(limit=1)})
+			q1_eval = EvaluationT1(res_root+os.sep+'q1_sres.pkl',res_root+os.sep+'gt_corresps1.pkl')
+			q2_eval = EvaluationT1(res_root+os.sep+'q2_sres.pkl',res_root+os.sep+'gt_corresps2.pkl')
+			q1_eval.compute_mapatk(limit=1)
+			q2_eval.compute_mapatk(limit=1)
+			filename = res_root+os.sep+'tests'+os.sep+'sub_res_'+str(s)+'_'+str(q[0])+'.pkl'
+			with open(filename,'wb') as f:
+				pickle.dump(q1_eval.score,f)
+				pickle.dump(q2_eval.score,f)
 			print('--- # -- ')
-	with open('final_sub_res.pkl','wb') as f:
-		pickle.dump(res_q1,f)
-		pickle.dump(res_q2,f)
+
+def see_results():
+	files = sorted(glob(res_root+os.sep+'tests'+os.sep+'*.pkl'))
+	for f in files:
+		print('--#--')
+		print(f+':::')
+		with open(f,'rb') as result:
+			q1_map = pickle.load(result)
+			q2_map = pickle.load(result)
+		print(q1_map)
+		print(q2_map)
+		print('--#--')
 
 def test_level_desc():
-	level = [2,3]
-	start = [2,3,5,8,10]
-	jump = [2,4]
-	quant = [[12,6,6],[16,8,8],[24,12,12]]
-	color = ['hsv']
-	res_q1 = []
-	res_q2 = []
+	level = [2]
+	start = [2,3,4,5]
+	jump = [2]
+	quant = [[8,16,16]]
+	color = ['lab']
 	for l in level:
 		for s in start:
 			for j in jump:
@@ -98,18 +109,17 @@ def test_level_desc():
 					q1_search.save_results(res_root,'q1_lres.pkl')
 					q2_search.save_results(res_root,'q2_lres.pkl')
 					# -- EVALUATION -- #
-					q1_eval = EvaluationT1(res_root+os.sep+'q1_lres.pkl',qs1_w1+os.sep+'gt_corresps.pkl')
-					q2_eval = EvaluationT1(res_root+os.sep+'q2_lres.pkl',qs2_w1+os.sep+'gt_corresps.pkl')
-					res_q1.append({'s':s,'q':q,'c':color[0],'j':j,'l':l,'r':q1_eval.compute_mapatk(limit=1)})
-					res_q2.append({'s':s,'q':q,'c':color[0],'j':j,'l':l,'r':q2_eval.compute_mapatk(limit=1)})
+					q1_eval = EvaluationT1(res_root+os.sep+'q1_lres.pkl',res_root+os.sep+'gt_corresps1.pkl')
+					q2_eval = EvaluationT1(res_root+os.sep+'q2_lres.pkl',res_root+os.sep+'gt_corresps2.pkl')
+					q1_eval.compute_mapatk(limit=1)
+					q2_eval.compute_mapatk(limit=1)
+					filename = res_root+os.sep+'tests'+os.sep+'lev_res_'+str(l)+'_'+str(s)+'_'+str(j)+'_'+str(q[0])+'.pkl'
+					with open(filename,'wb') as f:
+						pickle.dump(q1_eval.score,f)
+						pickle.dump(q2_eval.score,f)
 					print('--- # -- ')
-	with open('final_lev_res.pkl','wb') as f:
-		pickle.dump(res_q1,f)
-		pickle.dump(res_q2,f)
 
 if __name__ == '__main__':
-	print('--- SUB-BLOCKS -- ')
 	test_sub_blocks()
-	print('--- LEVEL -- ')
 	test_level_desc()
 	
