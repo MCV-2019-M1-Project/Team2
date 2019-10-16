@@ -1,5 +1,6 @@
 import os
 from glob import glob
+from distance_metrics import mse
 import cv2
 import numpy as np
 import time
@@ -12,23 +13,6 @@ Annotations
 - Do not use BackgroundMask5 or BackgroundMask6
 - Function BackgroundMask2 is way slower than BackgroundMask1, but it works better.
 """
-
-
-def MSE(a,b,axis):
-    """
-    This function computes the MSE between a and b along the specified axis.
-
-    Parameters
-    ----------
-    a : Numpy array.
-
-    b : Numpy array.
-
-    Returns
-    -------
-    Numpy array containing the MSE computation between a and b along the specified axis.
-    """
-    return ((a-b)**2).mean(axis=axis)
 
 def GetForegroundPixels(img,mask):
     """
@@ -72,7 +56,7 @@ def BackgroundMask1(img):
     # Create bg image, compute MSE between img_uv and bg_img at each pixel, threshold at min_distance so that
     # mask at > min_distance = 1
     bg_img = np.ones(shape=img_uv.shape,dtype=np.uint8)*average_estimate_bg_color
-    mask = MSE(img_uv,bg_img,axis=2)
+    mask = mse(img_uv,bg_img,axis=2)
     min_distance = 5
     _,mask = cv2.threshold(mask, min_distance, 255, cv2.THRESH_BINARY)
 
@@ -179,9 +163,9 @@ def BackgroundMask2(img):
                         average_estimate_bg_color = img_uv[row_ind,-1,:]
             bg_img[row_ind,col_ind] = average_estimate_bg_color
 
-    # Compute MSE between img_uv and bg_img at each pixel, threshold at min_distance so that
+    # Compute mse between img_uv and bg_img at each pixel, threshold at min_distance so that
     # mask at > min_distance = 1
-    mask = MSE(img_uv,bg_img,axis=2)
+    mask = mse(img_uv,bg_img,axis=2)
     min_distance = 5 # 5
     _,mask = cv2.threshold(mask, min_distance, 255, cv2.THRESH_BINARY)
 
@@ -204,7 +188,7 @@ def BackgroundMask3(img):
     img_yuv = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
 
     # Find contours of the rectangle, using only UV channels
-    img_uv = img_yuv[:,:,:]
+    img_uv = img_yuv[:,:,1:2]
     min_change = 10
     percent = 0.02
     x1,x2,y1,y2 = [int(img_uv.shape[0]*percent),int(img_uv.shape[0]*(1-percent)),int(img_uv.shape[1]*percent),int(img_uv.shape[1]*(1-percent))]
@@ -212,28 +196,28 @@ def BackgroundMask3(img):
     for row_ind in range(int(img_uv.shape[0]*percent),img_uv.shape[0]):
         current = np.mean(img_uv[row_ind,int(img_uv.shape[1]*(0.5-percent/2)):int(img_uv.shape[1]*(0.5+percent/2))],axis=0)
         previous = np.mean(img_uv[row_ind-1,int(img_uv.shape[1]*0.49):int(img_uv.shape[1]*0.51)],axis=0)
-        if MSE(current,previous,axis=0) > min_change:
+        if mse(current,previous,axis=0) > min_change:
             x1 = row_ind
             break
     # -- down
     for row_ind in range(int(img_uv.shape[0]*(1-percent)),0,-1):
         current = np.mean(img_uv[row_ind,int(img_uv.shape[1]*(0.5-percent/2)):int(img_uv.shape[1]*(0.5+percent/2))],axis=0)
         previous = np.mean(img_uv[row_ind+1,int(img_uv.shape[1]*(0.5-percent/2)):int(img_uv.shape[1]*(0.5+percent/2))],axis=0)
-        if MSE(current,previous,axis=0) > min_change:
+        if mse(current,previous,axis=0) > min_change:
             x2 = row_ind
             break
     # -- left
     for col_ind in range(1,img_uv.shape[1]):
         current = np.mean(img_uv[int(img_uv.shape[0]*(0.5-percent/2)):int(img_uv.shape[0]*(0.5+percent/2)),col_ind],axis=0)
         previous = np.mean(img_uv[int(img_uv.shape[0]*(0.5-percent/2)):int(img_uv.shape[0]*(0.5+percent/2)),col_ind-1],axis=0)
-        if MSE(current,previous,axis=0) > min_change:
+        if mse(current,previous,axis=0) > min_change:
             y1 = col_ind
             break
     # -- right
     for col_ind in range(img_uv.shape[1]-2,0,-1):
         current = np.mean(img_uv[int(img_uv.shape[0]*(0.5-percent/2)):int(img_uv.shape[0]*(0.5+percent/2)),col_ind],axis=0)
         previous = np.mean(img_uv[int(img_uv.shape[0]*(0.5-percent/2)):int(img_uv.shape[0]*(0.5+percent/2)),col_ind+1],axis=0)
-        if MSE(current,previous,axis=0) > min_change:
+        if mse(current,previous,axis=0) > min_change:
             y2 = col_ind
             break
 
@@ -245,7 +229,8 @@ def BackgroundMask3(img):
 def BackgroundMask4(img):
     # Resize image
     original_size = img.shape[:2]
-    img = cv2.resize(img,(1000,1000))
+    resize_shape = (1000,1000)
+    img = cv2.resize(img,resize_shape)
 
     # Obtain gray level image
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
@@ -263,6 +248,7 @@ def BackgroundMask4(img):
     pict_start_perc = 0.3
     lines_wanted = {"top": [-large_number,large_number,int(pict_start_perc*img.shape[0]),int(pict_start_perc*img.shape[0])], "bottom": [-large_number,large_number,int((1-pict_start_perc)*img.shape[0]),int((1-pict_start_perc)*img.shape[0])], "left": [int(pict_start_perc*img.shape[1]),int(pict_start_perc*img.shape[1]),-large_number,large_number], "right": [int((1-pict_start_perc)*img.shape[1]),int((1-pict_start_perc)*img.shape[1]),-large_number,large_number]}
     last_mask = np.zeros(shape=(original_size[0],original_size[1]),dtype=np.uint8)
+    last_mean_points = {"top":None,"left":None,"bottom":None,"right":None}
     for degrees_margin in [2,5]:
         lines = cv2.HoughLines(edges,1,np.pi/180,150)
         for i in range(len(lines)):
@@ -339,7 +325,6 @@ def BackgroundMask4(img):
                 if np.mean(v[:2]) <= int((1-pict_start_perc)*img.shape[1]):
                     v[0] = int((1-draw_perc_th)*img.shape[1])
                     v[1] = int((1-draw_perc_th)*img.shape[1])
-                print("RIGHT:",np.mean(v[:2]))
             # print(k,np.mean([v[0],v[1]]),np.mean([v[2],v[3]]))
             cv2.line(mask,(v[0],v[2]),(v[1],v[3]),(255,255,255),2)
 
@@ -363,8 +348,12 @@ def BackgroundMask4(img):
         # If new mask contains old mask, we stay with new mask
         if (np.bitwise_or(mask,last_mask) == mask).all():
             last_mask = mask
+            last_mean_points["top"] = int(np.mean(lines_wanted["top"][2:4])*original_size[0]/resize_shape[0])
+            last_mean_points["left"] = int(np.mean(lines_wanted["left"][:2])*original_size[1]/resize_shape[1])
+            last_mean_points["bottom"] = int(np.mean(lines_wanted["bottom"][2:4])*original_size[0]/resize_shape[0])
+            last_mean_points["right"] = int(np.mean(lines_wanted["right"][:2])*original_size[1]/resize_shape[1])
 
-    return last_mask
+    return last_mask, last_mean_points
 
 #Hough lines p
 def BackgroundMask5(img):

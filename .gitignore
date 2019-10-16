@@ -2,11 +2,12 @@
 database/
 
 # Query Datasets
-qs1/
-qs2/
+database/
+qsd1_w1/
+qsd2_w1/
+qsd1_w2/
+qsd2_w2/
 results/
-qs1t/
-qs2t/
 
 # Virtual Envs
 .env/
