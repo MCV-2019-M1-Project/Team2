@@ -13,7 +13,7 @@ class Searcher():
 	def __init__(self, data_desc, query_desc):
 		self.data = data_desc
 		self.query = query_desc
-		self.results = []
+		self.result = []
 
 	def search(self,limit=3):
 		"""METHOD::SEARCH
@@ -21,17 +21,21 @@ class Searcher():
 		# iterate through the query features
 		print('--- SEARCHING MOST SIMILAR --- ')
 		for qimg,qfeat in self.query.items():
-			distances = []
-			# iterate through the db features
-			for dimg,dfeat in self.data.items():
-				# compute distance
-				result = {'name':dimg,'dist':distance_metrics.chi2_distance(qfeat,dfeat)}
-				distances.append(result)
-			# make a list with all the distances from one query
-			less_dist = sorted(distances, key=lambda k: k['dist'])
-			# get the first 10 images from the db for that query image
-			retrieve = [less_dist[k]['name'] for k in range(limit)]
-			self.results.append(retrieve)
+			retrieve = []
+			for ft in qfeat:
+				distances = []
+				# iterate through the db features
+				for dimg,dfeat in self.data.items():
+					# compute distance
+					result = {'name':dimg,'dist':distance_metrics.chi2_distance(qfeat,dfeat)}
+					distances.append(result)
+				# make a list with all the distances from one query
+				less_dist = sorted(distances, key=lambda k: k['dist'])
+				# get the first limit images from the db for that query image
+				coincidences = [less_dist[k]['name'] for k in range(limit)]
+				retrieve.append(coincidences)
+			self.result.append(retrieve)
+		print('--- DONE --- ')
 		
 	def clear_memory(self):
 		"""METHOD::CLEAR_MEMORY:

@@ -55,6 +55,7 @@ def main():
 
     print("Combining masks in one picture + adapting bboxes...")
     final_masks = []
+    img2paintings_final_mask = []
     final_bboxs = []
     for ind,img in enumerate(img2paintings_items):
         print(ind,"of",len(img2paintings_items))
@@ -74,7 +75,7 @@ def main():
                 bbox[0] += missing_size
                 bbox[2] += missing_size
                 bboxs.append(bbox)
-
+        img2paintings_final_mask.append(to_concatenate)
         final_mask = np.concatenate(to_concatenate,axis=1)
         final_masks.append(final_mask)
         final_bboxs.append(bboxs)
@@ -90,6 +91,8 @@ def main():
         cv2.imwrite(img_path.replace(".jpg","_final_mask.png"),final_mask)
     print("Done.")
 
+    print('Obtaining descriptors.')
+    
 
 if __name__ == '__main__':
     main()

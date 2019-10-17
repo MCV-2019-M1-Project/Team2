@@ -2,7 +2,7 @@
 
 from descriptor import SubBlockDescriptor, LevelDescriptor
 from searcher import Searcher
-from evaluation import EvaluationT1
+from evaluation import EvaluateDescriptors
 from glob import glob
 import argparse
 import os
@@ -37,7 +37,7 @@ def get_arguments():
 
 def test_sub_blocks():
 	start = [8]
-	quant = [[24,12,12],[32,8,8]]
+	quant = [[64,8,8]]
 	color = ['hsv']
 	for s in start:
 		for q in quant:
@@ -57,8 +57,8 @@ def test_sub_blocks():
 			q1_search.search(limit=3)
 			q2_search.search(limit=3)
 			# -- EVALUATION -- #
-			q1_eval = EvaluationT1(q1_search.result,res_root+os.sep+'gt_corresps1.pkl')
-			q2_eval = EvaluationT1(q2_search.result,res_root+os.sep+'gt_corresps2.pkl')
+			q1_eval = EvaluateDescriptors(q1_search.result,res_root+os.sep+'gt_corresps1.pkl')
+			q2_eval = EvaluateDescriptors(q2_search.result,res_root+os.sep+'gt_corresps2.pkl')
 			q1_search.clear_memory()
 			q2_search.clear_memory()
 			q1_eval.compute_mapatk(limit=1)
@@ -82,7 +82,7 @@ def see_results():
 		print('--#--')
 
 def test_level_desc():
-	level = [2,3]
+	level = [2]
 	start = [5,6]
 	jump = [2]
 	quant = [[16,8,8],[24,12,12]]
@@ -107,8 +107,8 @@ def test_level_desc():
 					q1_search.search(limit=3)
 					q2_search.search(limit=3)
 					# -- EVALUATION -- #
-					q1_eval = EvaluationT1(q1_search.result,res_root+os.sep+'gt_corresps1.pkl')
-					q2_eval = EvaluationT1(q2_search.result,res_root+os.sep+'gt_corresps2.pkl')
+					q1_eval = EvaluateDescriptors(q1_search.result,res_root+os.sep+'gt_corresps1.pkl')
+					q2_eval = EvaluateDescriptors(q2_search.result,res_root+os.sep+'gt_corresps2.pkl')
 					q1_search.clear_memory()
 					q2_search.clear_memory()
 					q1_eval.compute_mapatk(limit=1)
