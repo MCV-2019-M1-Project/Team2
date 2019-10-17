@@ -9,12 +9,11 @@ import os
 import pickle
 
 # -- CLASS TO EVALUATE RESULTS -- #
-class EvaluationT1():
-	"""CLASS::EvaluationT1:
+class EvaluateDescriptors():
+	"""CLASS::EvaluateDescriptors:
 		>- Class to evaluate method of task 1."""
-	def __init__(self,query_res_path,gt_corr_path):
-		with open(query_res_path,'rb') as query_res:
-			self.query_res = pickle.load(query_res)
+	def __init__(self,query_results,gt_corr_path):
+		self.query_res = query_results
 		with open(gt_corr_path,'rb') as gt_corrs:
 			self.gt_corrs = pickle.load(gt_corrs)
 		self.score = 0
@@ -54,8 +53,8 @@ class EvaluationT1():
 		"""
 		return metrics.mapk(x,y)
 
-class EvaluationT5():
-	"""CLASS::EvaluationT5:
+class EvaluateMasks():
+	"""CLASS::EvaluateMasks:
 		>- Class to evaluate the masks of task 5."""
 	def __init__(self,res_path,gt_path):
 		self.res = sorted(glob(res_path+os.sep+'*.png'))

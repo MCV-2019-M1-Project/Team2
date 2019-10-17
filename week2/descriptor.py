@@ -35,12 +35,10 @@ class SubBlockDescriptor():
 			self.result[k] = self._compute_level(grid_blocks,img,mask)
 		print('--- DONE --- ')
 
-	def save_results(self,out_path,filename):
-		"""METHOD::SAVE_RESULTS:
-			>- To save the dictionary containing all the descriptors for all the images."""
-		with open(out_path+os.sep+filename,'wb') as file:
-			pickle.dump(self.result,file)
-		print('--- DESCRIPTORS SAVED ---')
+	def clear_memory(self):
+		"""METHOD::CLEAR_MEMORY:
+			>- Deletes the memory allocated that stores data to make it more efficient."""
+		self.result = {}
 	
 	def _compute_level(self,grid_blocks,img,mask):
 		"""METHOD::COMPUTE_LEVEL:

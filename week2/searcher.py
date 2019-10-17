@@ -10,11 +10,9 @@ import os
 class Searcher():
 	"""CLASS::SEARCHER:
 		>- Class to search the top K most similar images given the database and query features."""
-	def __init__(self, data_path, query_path):
-		with open(data_path,'rb') as data_file:
-			self.data = pickle.load(data_file)
-		with open(query_path,'rb') as query_file:
-			self.query = pickle.load(query_file)
+	def __init__(self, data_desc, query_desc):
+		self.data = data_desc
+		self.query = query_desc
 		self.results = []
 
 	def search(self,limit=3):
@@ -34,11 +32,9 @@ class Searcher():
 			# get the first 10 images from the db for that query image
 			retrieve = [less_dist[k]['name'] for k in range(limit)]
 			self.results.append(retrieve)
-
-	def save_results(self,out_path,filename):
-		"""METHOD::SAVE_METHODS:
-			>- Save the results of the search engine."""
-		with open(out_path+os.sep+filename,'wb') as file:
-			pickle.dump(self.results,file)
-		print('--- SEARCH RESULTS SAVED ---')
+		
+	def clear_memory(self):
+		"""METHOD::CLEAR_MEMORY:
+			>- Deletes the memory allocated that stores data to make it more efficient."""
+		self.result = []
 
