@@ -1,22 +1,33 @@
-import os
+# -- IMPORTS -- #
 from glob import glob
 from paintings_count import getListOfPaintings
 from background_removal import BackgroundMask4
 from textbox_removal import TextBoxRemoval
+from descriptor import SubBlockDescriptor
+from searcher import Searcher
+from evaluation import EvaluateDescriptors
 import numpy as np
-import cv2
 import pickle
+import cv2
+import os
+
+# -- DIRECTORIES -- #
+db = '../database'
+qs1_w2 = '../qsd1_w2'
+qs2_w2 = '../qsd2_w2'
+mask_root = '../results/QS2_masks'
+res_root = '../results'
 
 
-"""
-THIS MAIN RUNS EVERYTHING FOR QSD2W2. 
-WRITES MASK FOR FOREGROUND, FINAL MASK FOR FOREGROUND + TEXTBOX, SAVES PICKLE FILE WITH TEXTBOXES
-"""
-def main():
+def main_qs2():
+    # -- GET IMAGES -- #
     folder_path = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week2\qsd2_w2"
     img_paths = sorted(glob(os.path.join(folder_path,"*.jpg")))
     print("Obtaining list of paintings...")
     img2paintings = getListOfPaintings(folder_path,"EDGES")
+    db_images = []
+    for db_path in sorted(glob(os.path.join(db,"*.jpg"))):
+        db_images.append([cv2.imread(db_path)])
     print("Done.")
 
     print("Obtaining background masks for each painting...")
@@ -92,7 +103,60 @@ def main():
     print("Done.")
 
     print('Obtaining descriptors.')
+    # -- DESCRIPTORS -- #
+    db_desc = SubBlockDescriptor(db_images,None,flag=False)
+    db_desc.compute_descriptors(grid_blocks=[8,8],quantify=[32,8,8],color_space='hsv')
+    q2_desc = SubBlockDescriptor(img2paintings,img2paintings_final_mask)
+    q2_desc.compute_descriptors(grid_blocks=[8,8],quantify=[32,8,8],color_space='hsv')
+
+    # -- SEARCH -- #
+    q2_searcher = Searcher(db_desc.result,q2_desc.result)
+    db_desc.clear_memory()
+    q2_desc.clear_memory()
+    q2_searcher.search(limit=3)
+
+# -- MAIN FOR QSD1_W2 -- #
+def main_qs1():
+
+    # -- GET IMAGES -- #
+    qimg_paths = sorted(glob(os.path.join(qs1_w2,"*.jpg")))
+    query_images = getListOfPaintings(qs1_w2,"EDGES")
+    db_images = []
+    for db_path in sorted(glob(os.path.join(db,"*.jpg"))):
+        db_images.append([cv2.imread(db_path)])
+
+    # -- REMOVE TEXT and GENERATE MASK -- #
+    query_mask = []
+    query_bbox = []
+    for ind,img in enumerate(query_images):
+        for paint in img:
+            mask, textbox = TextBoxRemoval(paint)
+            bbox = [textbox[0][1],textbox[0][0],textbox[1][1],textbox[1][0]]
+            query_mask = [mask]
+            query_bbox = [bbox]
+            cv2.imwrite(os.path.join(res_root,"QS1W2/{0:05d}.png".format(ind)),mask)
     
+    # -- SAVE BBOXES -- #
+    with open(os.path.join(res_root,"qs1_bbox.pkl"),'wb') as file:
+        pickle.dump(query_bbox,file)
+
+    # -- DESCRIPTORS -- #
+    db_desc = SubBlockDescriptor(db_images,None,flag=False)
+    db_desc.compute_descriptors(grid_blocks=[8,8],quantify=[32,8,8],color_space='hsv')
+    q1_desc = SubBlockDescriptor(query_images,query_mask)
+    q1_desc.compute_descriptors(grid_blocks=[8,8],quantify=[32,8,8],color_space='hsv')
+
+    # -- SEARCH -- #
+    q1_searcher = Searcher(db_desc.result,q1_desc.result)
+    db_desc.clear_memory()
+    q1_desc.clear_memory()
+    q1_searcher.search(limit=3)
+
+    # -- EVALUATE DESCRIPTORS -- #
+    q1_eval = EvaluateDescriptors(q1_searcher.result,os.path.join(qs1_w2,"gt_corresps.pkl"))
+    q1_searcher.clear_memory()
+    q1_eval.compute_mapatk(limit=3)
 
 if __name__ == '__main__':
-    main()
+    main_qs1()
+    main_qs2()

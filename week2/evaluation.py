@@ -112,9 +112,8 @@ class EvaluateMasks():
 class EvaluateIoU():
 	"""CLASS::EvaluateIoU:
 		>- Class to evaluate the intersection over Union metric for bounding boxes."""
-	def __init__(self,bbox_path,gt_path):
-		with open(bbox_path,'rb') as file:
-			self.bbox = pickle.load(file)
+	def __init__(self,bboxes,gt_path):
+		self.bbox = bboxes
 		with open(gt_path,'rb') as file:
 			self.gt = pickle.load(file)
 		self.score = 0
