@@ -12,12 +12,12 @@ class SubBlockDescriptor():
 	"""CLASS::SubBlockDescriptor:
 		>- Class in charge of computing the descriptors for all the images from a directory.
 		This class divides the image in sub-blocks to compute the descriptors at each sub-blok and then extend the results"""
-	def __init__(self,data_path,img_format='jpg',masks=False,mask_path=None):
-		self.filenames = sorted(glob(data_path+os.sep+'*.'+img_format))
-		if masks:
-			self.masks = sorted(glob(mask_path+os.sep+'*.png'))
+	def __init__(self,img_list,mask_list,flag=True):
+		self.img_list = img_list
+		if flag:
+			self.mask_list = mask_list
 		else:
-			self.masks = [None]*len(self.filenames)
+			self.mask_list = [[None]]*len(self.img_list)
 		self.result = {}
 
 	def compute_descriptors(self,grid_blocks=[3,3],quantify=[12,6,6],color_space='hsv'):
@@ -26,21 +26,16 @@ class SubBlockDescriptor():
 		self.quantify = quantify
 		self.color_space = color_space
 		print('--- COMPUTING DESCRIPTORS --- ')
-		for k,filename in enumerate(self.filenames):
-			img = cv2.imread(filename)
-			if self.masks[k] is not None:
-				mask = cv2.imread(self.masks[k],0)
-			else:
-				mask = self.masks[k]
-			self.result[k] = self._compute_level(grid_blocks,img,mask)
+		for k,images in enumerate(self.img_list):
+			self.result[k] = []
+			for i,img in enumerate(images):
+				self.result[k].append(self._compute_level(grid_blocks,img,self.mask_list[k][i]))
 		print('--- DONE --- ')
 
-	def save_results(self,out_path,filename):
-		"""METHOD::SAVE_RESULTS:
-			>- To save the dictionary containing all the descriptors for all the images."""
-		with open(out_path+os.sep+filename,'wb') as file:
-			pickle.dump(self.result,file)
-		print('--- DESCRIPTORS SAVED ---')
+	def clear_memory(self):
+		"""METHOD::CLEAR_MEMORY:
+			>- Deletes the memory allocated that stores data to make it more efficient."""
+		self.result = {}
 	
 	def _compute_level(self,grid_blocks,img,mask):
 		"""METHOD::COMPUTE_LEVEL:
@@ -87,8 +82,8 @@ class SubBlockDescriptor():
 class LevelDescriptor(SubBlockDescriptor):
 	"""CLASS::LevelDescriptor:
 		>- Class in charge of computing the descriptors for all the images from a directory."""
-	def __init__(self,data_path,img_format='jpg',masks=False,mask_path=None):
-		super().__init__(data_path,img_format,masks,mask_path)
+	def __init__(self,img_list,mask_list,flag=True):
+		super().__init__(img_list,mask_list,flag)
 	
 	def compute_descriptors(self,levels=3,init_quant=[16,8,8],start=3,jump=2,color_space='hsv'):
 		self.quantify = np.asarray(init_quant)
@@ -96,17 +91,14 @@ class LevelDescriptor(SubBlockDescriptor):
 			raise ValueError('The amount of levels are bigger than the quantification steps.')
 		self.color_space = color_space
 		print('--- COMPUTING DESCRIPTORS --- ')
-		for k,filename in enumerate(self.filenames):
-			img = cv2.imread(filename)
-			if self.masks[k] is not None:
-				mask = cv2.imread(self.masks[k],0)
-			else:
-				mask = self.masks[k]
-			features = []
-			grid_blocks = np.array([start,start])
-			for l in range(levels):
-				feature = self._compute_level(grid_blocks.tolist(),img,mask)
-				features.extend(feature)
-				grid_blocks*jump
-			self.result[k] = features
+		for k,images in enumerate(self.images):
+			self.result[k] = []
+			for i,img in images:
+				features = []
+				grid_blocks = np.array([start,start])
+				for l in range(levels):
+					feature = self._compute_level(grid_blocks.tolist(),img,mask)
+					features.extend(feature)
+					grid_blocks*jump
+				self.result[k].append(features)
 		print('--- DONE --- ')

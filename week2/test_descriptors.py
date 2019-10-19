@@ -2,7 +2,7 @@
 
 from descriptor import SubBlockDescriptor, LevelDescriptor
 from searcher import Searcher
-from evaluation import EvaluationT1
+from evaluation import EvaluateDescriptors
 from glob import glob
 import argparse
 import os
@@ -36,9 +36,9 @@ def get_arguments():
 	return parser.parse_args()
 
 def test_sub_blocks():
-	start = [2,3,4,5,8]
-	quant = [[8,16,16]]
-	color = ['lab']
+	start = [8]
+	quant = [[64,8,8]]
+	color = ['hsv']
 	for s in start:
 		for q in quant:
 			print('--- # -- ')
@@ -48,19 +48,19 @@ def test_sub_blocks():
 			db_desc.compute_descriptors(grid_blocks=[s,s],quantify=q,color_space=color[0])
 			q1_desc.compute_descriptors(grid_blocks=[s,s],quantify=q,color_space=color[0])
 			q2_desc.compute_descriptors(grid_blocks=[s,s],quantify=q,color_space=color[0])
-			db_desc.save_results(res_root,'db_sub.pkl')
-			q1_desc.save_results(res_root,'q1_sub.pkl')
-			q2_desc.save_results(res_root,'q2_sub.pkl')
 			# -- SEARCH -- #
-			q1_search = Searcher(res_root+os.sep+'db_sub.pkl',res_root+os.sep+'q1_sub.pkl')
-			q2_search = Searcher(res_root+os.sep+'db_sub.pkl',res_root+os.sep+'q2_sub.pkl')
+			q1_search = Searcher(db_desc.result,q1_desc.result)
+			q2_search = Searcher(db_desc.result,q2_desc.result)
+			q1_desc.clear_memory()
+			q2_desc.clear_memory()
+			db_desc.clear_memory()
 			q1_search.search(limit=3)
 			q2_search.search(limit=3)
-			q1_search.save_results(res_root,'q1_sres.pkl')
-			q2_search.save_results(res_root,'q2_sres.pkl')
 			# -- EVALUATION -- #
-			q1_eval = EvaluationT1(res_root+os.sep+'q1_sres.pkl',res_root+os.sep+'gt_corresps1.pkl')
-			q2_eval = EvaluationT1(res_root+os.sep+'q2_sres.pkl',res_root+os.sep+'gt_corresps2.pkl')
+			q1_eval = EvaluateDescriptors(q1_search.result,res_root+os.sep+'gt_corresps1.pkl')
+			q2_eval = EvaluateDescriptors(q2_search.result,res_root+os.sep+'gt_corresps2.pkl')
+			q1_search.clear_memory()
+			q2_search.clear_memory()
 			q1_eval.compute_mapatk(limit=1)
 			q2_eval.compute_mapatk(limit=1)
 			filename = res_root+os.sep+'tests'+os.sep+'sub_res_'+str(s)+'_'+str(q[0])+'.pkl'
@@ -83,10 +83,10 @@ def see_results():
 
 def test_level_desc():
 	level = [2]
-	start = [2,3,4,5]
+	start = [5,6]
 	jump = [2]
-	quant = [[8,16,16]]
-	color = ['lab']
+	quant = [[16,8,8],[24,12,12]]
+	color = ['hsv']
 	for l in level:
 		for s in start:
 			for j in jump:
@@ -98,19 +98,19 @@ def test_level_desc():
 					db_desc.compute_descriptors(levels=l,init_quant=q,start=s,jump=j,color_space=color[0])
 					q1_desc.compute_descriptors(levels=l,init_quant=q,start=s,jump=j,color_space=color[0])
 					q2_desc.compute_descriptors(levels=l,init_quant=q,start=s,jump=j,color_space=color[0])
-					db_desc.save_results(res_root,'db_lev.pkl')
-					q1_desc.save_results(res_root,'q1_lev.pkl')
-					q2_desc.save_results(res_root,'q2_lev.pkl')
 					# -- SEARCH -- #
-					q1_search = Searcher(res_root+os.sep+'db_lev.pkl',res_root+os.sep+'q1_lev.pkl')
-					q2_search = Searcher(res_root+os.sep+'db_lev.pkl',res_root+os.sep+'q2_lev.pkl')
+					q1_search = Searcher(db_desc.result,q1_desc.result)
+					q2_search = Searcher(db_desc.result,q2_desc.result)
+					db_desc.clear_memory()
+					q1_desc.clear_memory()
+					q2_desc.clear_memory()
 					q1_search.search(limit=3)
 					q2_search.search(limit=3)
-					q1_search.save_results(res_root,'q1_lres.pkl')
-					q2_search.save_results(res_root,'q2_lres.pkl')
 					# -- EVALUATION -- #
-					q1_eval = EvaluationT1(res_root+os.sep+'q1_lres.pkl',res_root+os.sep+'gt_corresps1.pkl')
-					q2_eval = EvaluationT1(res_root+os.sep+'q2_lres.pkl',res_root+os.sep+'gt_corresps2.pkl')
+					q1_eval = EvaluateDescriptors(q1_search.result,res_root+os.sep+'gt_corresps1.pkl')
+					q2_eval = EvaluateDescriptors(q2_search.result,res_root+os.sep+'gt_corresps2.pkl')
+					q1_search.clear_memory()
+					q2_search.clear_memory()
 					q1_eval.compute_mapatk(limit=1)
 					q2_eval.compute_mapatk(limit=1)
 					filename = res_root+os.sep+'tests'+os.sep+'lev_res_'+str(l)+'_'+str(s)+'_'+str(j)+'_'+str(q[0])+'.pkl'
@@ -120,6 +120,5 @@ def test_level_desc():
 					print('--- # -- ')
 
 if __name__ == '__main__':
-	test_sub_blocks()
-	test_level_desc()
+	see_results()
 	

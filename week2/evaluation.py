@@ -9,25 +9,25 @@ import os
 import pickle
 
 # -- CLASS TO EVALUATE RESULTS -- #
-class EvaluationT1():
-	"""CLASS::EvaluationT1:
+class EvaluateDescriptors():
+	"""CLASS::EvaluateDescriptors:
 		>- Class to evaluate method of task 1."""
-	def __init__(self,query_res_path,gt_corr_path):
-		with open(query_res_path,'rb') as query_res:
-			self.query_res = pickle.load(query_res)
+	def __init__(self,query_results,gt_corr_path):
+		self.query_res = query_results
 		with open(gt_corr_path,'rb') as gt_corrs:
 			self.gt_corrs = pickle.load(gt_corrs)
 		self.score = 0
 	
-	def compute_mapatk(self,limit=3):
+	def compute_mapatk(self,limit=1):
 		"""METHOD::COMPUTE_MAPATK:
 			>- Computes the MAPatk score for the results obtained."""
-		gt = []
 		query = []
-		for k in range(len(self.gt_corrs)):
-			gt.append(self.gt_corrs[k][0][1:])
-			query.append(self.query_res[k][0:limit])
-		self.score = self.MAPatK(gt,query)
+		for img in self.query_res:
+			q = []
+			for values in img:
+				q.append(values[0:limit])
+			query.append(q)
+		self.score = self.MAPatK(self.gt_corrs,query[0])
 	
 	def MAPatK(self,x,y):
 		"""
@@ -54,8 +54,8 @@ class EvaluationT1():
 		"""
 		return metrics.mapk(x,y)
 
-class EvaluationT5():
-	"""CLASS::EvaluationT5:
+class EvaluateMasks():
+	"""CLASS::EvaluateMasks:
 		>- Class to evaluate the masks of task 5."""
 	def __init__(self,res_path,gt_path):
 		self.res = sorted(glob(res_path+os.sep+'*.png'))
@@ -108,3 +108,41 @@ class EvaluationT5():
 		self.recall.append(recall)
 
 		return 2*precision*recall/(precision+recall)
+
+class EvaluateIoU():
+	"""CLASS::EvaluateIoU:
+		>- Class to evaluate the intersection over Union metric for bounding boxes."""
+	def __init__(self,bboxes,gt_path):
+		self.bbox = bboxes
+		with open(gt_path,'rb') as file:
+			self.gt = pickle.load(file)
+		self.score = 0
+	
+	def compute_iou(self):
+	"""METHOD::COMPUTE_IOU:
+		>- Uses the function bb_iou to compute the iou of the bounding boxes."""
+		iou_result = []
+		for gt_box,qr_box in zip(self.gt,self.bbox):
+			for gb,qb in zip(gt_box,qr_box):
+				iou_result.append(self.bb_iou(gb,qb))
+		self.score = np.mean(iou_result)
+	
+	def bb_iou(boxA, boxB):
+	"""METHOD::BB_IOU:
+		>- Computes the Interference over Union."""
+    	boxA = [int(x) for x in boxA]
+    	boxB = [int(x) for x in boxB]
+
+    	xA = max(boxA[0], boxB[0])
+    	yA = max(boxA[1], boxB[1])
+    	xB = min(boxA[2], boxB[2])
+    	yB = min(boxA[3], boxB[3])
+
+    	interArea = max(0, xB - xA + 1) * max(0, yB - yA + 1)
+
+    	boxAArea = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1)
+    	boxBArea = (boxB[2] - boxB[0] + 1) * (boxB[3] - boxB[1] + 1)
+    
+    	iou = interArea / float(boxAArea + boxBArea - interArea)
+
+    	return iou

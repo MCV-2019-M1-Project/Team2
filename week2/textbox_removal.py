@@ -10,7 +10,6 @@ def TextBoxRemoval(img):
     resize_size = (1000,1000)
     rectangle_max_min_difference = 10
     min_ratio = 0.08
-    thresh_bw_wb = 20
 
     # Resize image
     original_size = img.shape[:2]
@@ -84,10 +83,23 @@ def TextBoxRemoval(img):
         last_col_width = rectangles["bright"][2]
         indexes = [last_row_ind,last_row_ind+row_length,int(0.5*mask.shape[1])-int(last_col_width*0.5),int(0.5*mask.shape[1])+int(last_col_width*0.5)]
         bright_rect = img[indexes[0]:indexes[1],indexes[2]:indexes[3]]
-        mean_0 = np.mean(bright_rect[:,:,0])
-        mean_1 = np.mean(bright_rect[:,:,1])
-        mean_2 = np.mean(bright_rect[:,:,2])
-        if np.abs(mean_0-mean_1) > thresh_bw_wb or np.abs(mean_0-mean_2) > thresh_bw_wb or np.abs(mean_2-mean_1) > thresh_bw_wb:
+        mean_0_bright = np.mean(bright_rect[:,:,0])
+        mean_1_bright = np.mean(bright_rect[:,:,1])
+        mean_2_bright = np.mean(bright_rect[:,:,2])
+
+        last_row_ind = rectangles["dark"][0]
+        row_length = rectangles["dark"][1]
+        last_col_width = rectangles["dark"][2]
+        indexes = [last_row_ind,last_row_ind+row_length,int(0.5*mask.shape[1])-int(last_col_width*0.5),int(0.5*mask.shape[1])+int(last_col_width*0.5)]
+        dark_rect = img[indexes[0]:indexes[1],indexes[2]:indexes[3]]
+        mean_0_dark = np.mean(dark_rect[:,:,0])
+        mean_1_dark = np.mean(dark_rect[:,:,1])
+        mean_2_dark = np.mean(dark_rect[:,:,2])
+
+        means_bright = (np.abs(mean_0_bright-mean_1_bright)+np.abs(mean_0_bright-mean_2_bright)+np.abs(mean_2_bright-mean_1_bright))/3
+        means_dark = (np.abs(mean_0_dark-mean_1_dark)+np.abs(mean_0_dark-mean_2_dark)+np.abs(mean_2_dark-mean_1_dark))/3
+
+        if means_dark < means_bright:
             last_row_ind = rectangles["dark"][0]
             row_length = rectangles["dark"][1]
             last_col_width = rectangles["dark"][2]
