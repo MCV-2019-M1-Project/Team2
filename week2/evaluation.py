@@ -21,13 +21,8 @@ class EvaluateDescriptors():
 	def compute_mapatk(self,limit=1):
 		"""METHOD::COMPUTE_MAPATK:
 			>- Computes the MAPatk score for the results obtained."""
-		query = []
-		for img in self.query_res:
-			q = []
-			for values in img:
-				q.append(values[0:limit])
-			query.append(q)
-		self.score = self.MAPatK(self.gt_corrs,query[0])
+		query = [item[0][0:limit] for item in self.query_res]
+		self.score = self.MAPatK(self.gt_corrs,query)
 	
 	def MAPatK(self,x,y):
 		"""
