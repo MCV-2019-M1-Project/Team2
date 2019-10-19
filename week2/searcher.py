@@ -27,7 +27,7 @@ class Searcher():
 				# iterate through the db features
 				for dimg,dfeat in self.data.items():
 					# compute distance
-					result = {'name':dimg,'dist':distance_metrics.chi2_distance(qfeat,dfeat)}
+					result = {'name':dimg,'dist':distance_metrics.chi2_distance(ft,dfeat)}
 					distances.append(result)
 				# make a list with all the distances from one query
 				less_dist = sorted(distances, key=lambda k: k['dist'])
@@ -35,6 +35,8 @@ class Searcher():
 				coincidences = [less_dist[k]['name'] for k in range(limit)]
 				retrieve.append(coincidences)
 			self.result.append(retrieve)
+			print('Image ['+str(qimg)+'] Processed.')
+			print('-------')
 		print('--- DONE --- ')
 		
 	def clear_memory(self):
