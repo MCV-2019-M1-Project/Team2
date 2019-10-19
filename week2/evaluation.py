@@ -119,30 +119,31 @@ class EvaluateIoU():
 		self.score = 0
 	
 	def compute_iou(self):
-	"""METHOD::COMPUTE_IOU:
+		"""METHOD::COMPUTE_IOU:
 		>- Uses the function bb_iou to compute the iou of the bounding boxes."""
 		iou_result = []
 		for gt_box,qr_box in zip(self.gt,self.bbox):
 			for gb,qb in zip(gt_box,qr_box):
 				iou_result.append(self.bb_iou(gb,qb))
 		self.score = np.mean(iou_result)
-	
+
+	@staticmethod
 	def bb_iou(boxA, boxB):
-	"""METHOD::BB_IOU:
+		"""METHOD::BB_IOU:
 		>- Computes the Interference over Union."""
-    	boxA = [int(x) for x in boxA]
-    	boxB = [int(x) for x in boxB]
+		boxA = [int(x) for x in boxA]
+		boxB = [int(x) for x in boxB]
 
-    	xA = max(boxA[0], boxB[0])
-    	yA = max(boxA[1], boxB[1])
-    	xB = min(boxA[2], boxB[2])
-    	yB = min(boxA[3], boxB[3])
+		xA = max(boxA[0], boxB[0])
+		yA = max(boxA[1], boxB[1])
+		xB = min(boxA[2], boxB[2])
+		yB = min(boxA[3], boxB[3])
 
-    	interArea = max(0, xB - xA + 1) * max(0, yB - yA + 1)
+		interArea = max(0, xB - xA + 1) * max(0, yB - yA + 1)
 
-    	boxAArea = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1)
-    	boxBArea = (boxB[2] - boxB[0] + 1) * (boxB[3] - boxB[1] + 1)
-    
-    	iou = interArea / float(boxAArea + boxBArea - interArea)
+		boxAArea = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1)
+		boxBArea = (boxB[2] - boxB[0] + 1) * (boxB[3] - boxB[1] + 1)
 
-    	return iou
+		iou = interArea / float(boxAArea + boxBArea - interArea)
+
+		return iou
