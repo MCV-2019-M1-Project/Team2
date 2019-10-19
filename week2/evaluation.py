@@ -78,9 +78,6 @@ class EvaluateMasks():
 		self.score = np.mean(self.score)
 		self.precision = np.mean(self.precision)
 		self.recall = np.mean(self.recall)
-		print('The F_Score obtained for the masks is: ['+str(self.score)+'].')
-		print('The Precision obtained for masks is: ['+str(self.precision)+'].')
-		print('The Recall obtained for masks is: ['+str(self.recall)+'].')
 
 	def F1_measure(self,gt,res):
 		"""

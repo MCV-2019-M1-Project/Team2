@@ -13,19 +13,19 @@ qs1_w2 = '../qsd1_w2'
 qs2_w2 = '../qsd2_w2'
 
 def evaluate():
-    # -- OPEN FILES -- #
-    print('Opening files')
-    with open(res_root+os.sep+'qs1_bbox.pkl','rb') as f:
-        qs1_bbox = pickle.load(f)
-    with open(res_root+os.sep+'qs2_bbox.pkl','rb') as f:
-        qs2_bbox = pickle.load(f)
-    with open(res_root+os.sep+'qs1_result.pkl','rb') as f:
-        qs1_result = pickle.load(f)
-    with open(res_root+os.sep+'qs2_result.pkl','rb') as f:
-        qs2_result = pickle.load(f)
+	# -- OPEN FILES -- #
+	print('Opening files')
+	with open(res_root+os.sep+'qs1_bbox.pkl','rb') as f:
+		qs1_bbox = pickle.load(f)
+	with open(res_root+os.sep+'qs2_bbox.pkl','rb') as f:
+		qs2_bbox = pickle.load(f)
+	with open(res_root+os.sep+'qs1_result.pkl','rb') as f:
+		qs1_result = pickle.load(f)
+	with open(res_root+os.sep+'qs2_result.pkl','rb') as f:
+		qs2_result = pickle.load(f)
 	print('Done')
 
-    # -- EVALUATE BBOX QS1 -- #
+	# -- EVALUATE BBOX QS1 -- #
 	print('Evaluating QS1:')
 	qs1_box_eval = EvaluateIoU(qs1_bbox,qs1_w2+os.sep+'text_boxes.pkl')
 	qs1_mask_eval = EvaluateMasks(qs1_mask,qs1_w2)
@@ -38,7 +38,6 @@ def evaluate():
 	print('DESC MAP3: ['+str(qs1_desc_eval.score)+']')
 	print('BBOX IOU: ['+str(qs1_box_eval.score)+']')
 	print('MASK FSCORE: ['+str(qs1_mask_eval.score)+']')
-	print('DESC MAP: ['+str(qs1_mask_eval.score)+']')
 	print('Done')
 
 	# -- EVALUATE BBOX QS2 -- #
@@ -54,7 +53,7 @@ def evaluate():
 	print('DESC MAP3: ['+str(qs2_desc_eval.score)+']')
 	print('BBOX IOU: ['+str(qs2_box_eval.score)+']')
 	print('MASK FSCORE: ['+str(qs2_mask_eval.score)+']')
-	print('DESC MAP: ['+str(qs2_mask_eval.score)+']')
 	print('Done')
+	
 if __name__ == '__main__':
-    evaluate()
+	evaluate()

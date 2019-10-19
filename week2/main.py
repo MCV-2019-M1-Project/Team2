@@ -36,7 +36,7 @@ def main_qs2():
         for painting in img:
             mask, mean_points = BackgroundMask4(painting)
             img2paintings_mask[-1].append({"painting":painting,"mask":mask,"mean_points":mean_points})
-        #cv2.imwrite(img_path.replace(".jpg","_fg_mask.png"),np.concatenate([item["mask"] for item in img2paintings_mask[-1]],axis=1))
+        cv2.imwrite(res_root+os.sep+'QS2W2/{0:05d}.png'.format(ind),np.concatenate([item["mask"] for item in img2paintings_mask[-1]],axis=1))
     print("Done.")
 
     print("Obtaining textbox masks for each painting...")
@@ -93,11 +93,6 @@ def main_qs2():
         pickle.dump(final_bboxs,f)
     print("Done.")
 
-    print("Writing final masks...")
-    for ind,final_mask in enumerate(final_masks):
-        cv2.imwrite(res_root+os.sep+'QS2W2/{0:05d}.png'.format(ind),final_mask)
-    print("Done.")
-
     print('Obtaining descriptors.')
     # -- DESCRIPTORS -- #
     db_desc = SubBlockDescriptor(db_images,None,flag=False)
@@ -130,7 +125,6 @@ def main_qs1():
     for qimg_paths in sorted(glob(qs1_w2+os.sep+'*.jpg')):
         query_images.append([cv2.imread(qimg_paths)])
     print("Done.")
-
 
     # -- REMOVE TEXT and GENERATE MASK -- #
     print("Obtaining textbox masks for each painting...")
@@ -174,3 +168,4 @@ def main_qs1():
 
 if __name__ == '__main__':
     main_qs1()
+    main_qs2()
