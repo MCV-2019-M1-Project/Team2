@@ -25,28 +25,8 @@ class EvaluateDescriptors():
 		self.score = self.MAPatK(self.gt_corrs,query)
 	
 	def MAPatK(self,x,y):
-		"""
-		metrics.mapk.__doc__:
-
-		Computes the mean average precision at k.
-
-		This function computes the mean average prescision at k between two lists
-		of lists of items.
-
-		Parameters
-		----------
-		x : list
-			A list of lists of elements that are to be predicted 
-			(order doesn't matter in the lists)
-		y : list
-			A list of lists of predicted elements
-			(order matters in the lists)
-
-		Returns
-		-------
-		score : double
-				The mean average precision at k over the input lists
-		"""
+		"""METHOD::MAPATK:
+			>- Calls the function from ML_METRICS"""
 		return metrics.mapk(x,y)
 
 class EvaluateMasks():
@@ -75,19 +55,8 @@ class EvaluateMasks():
 		self.recall = np.mean(self.recall)
 
 	def F1_measure(self,gt,res):
-		"""
-		This function computes the F1 measure between gt and res.
-
-		Parameters
-		----------
-		gt : Ground truth binary image as numpy array.
-
-		res : Result binary image as numpy array.
-
-		Returns
-		-------
-		Integer resulting of computing the F1 measure.
-		"""
+		"""METHOD::F1_MEASURE:
+			>- Computes the F1 measure between gt and res"""
 
 		TP = np.sum(np.bitwise_and(gt,res) == 1)
 		FN = np.sum(np.bitwise_and(gt,(1-res)) == 1)

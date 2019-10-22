@@ -2,11 +2,15 @@
 database/
 
 # Query Datasets
-database/
+bbdd/
+bbdd_text/
 qsd1_w1/
 qsd2_w1/
 qsd1_w2/
 qsd2_w2/
+qsd1_w2/
+qsd1_w3/
+qsd2_w3/
 results/
 
 # Virtual Envs

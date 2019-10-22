@@ -21,20 +21,20 @@ res_root = "../results"
 
 def main_qs1_w1():
 
-    db_image_paths = [[item] for item in sorted(glob(os.path.join(db,"*.jpg")))][:]
-    qs_image_paths = [[item] for item in sorted(glob(os.path.join(qs1_w1,"*.jpg")))][:]
+    db_images = [[cv2.imread(item)] for item in sorted(glob(os.path.join(db,"*.jpg")))][:]
+    qs_images = [[cv2.imread(item)] for item in sorted(glob(os.path.join(qs1_w1,"*.jpg")))][:]
 
     # -- DESCRIPTORS -- #
     print("Computing descriptors for database images...")
-    # db_desc = SubBlockDescriptor(db_image_paths,None,flag=False)
+    # db_desc = SubBlockDescriptor(db_images,None,flag=False)
     # db_desc.compute_descriptors(grid_blocks=[8,8],quantify=[32,8,8],color_space="hsv")
-    db_desc = TransformDescriptor(db_image_paths,None,flag=None)
+    db_desc = TransformDescriptor(db_images,None,flag=False)
     db_desc.compute_descriptors(transform_type="lbp")
     print("Done.")
     print("Computing descriptors for query images...")
-    # qs_desc = SubBlockDescriptor(qs_image_paths,None,flag=False)
+    # qs_desc = SubBlockDescriptor(qs_images,None,flag=False)
     # qs_desc.compute_descriptors(grid_blocks=[8,8],quantify=[32,8,8],color_space="hsv")
-    qs_desc = TransformDescriptor(qs_image_paths,None,flag=None)
+    qs_desc = TransformDescriptor(qs_images,None,flag=False)
     qs_desc.compute_descriptors(transform_type="lbp")
     print("Done.")
 
