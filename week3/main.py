@@ -12,17 +12,21 @@ import cv2
 import os
 
 # -- DIRECTORIES -- #
-db = r"C:\Users\PC\Documents\Roger\Master\M1\Project\bbdd"
+db = "../bbdd"
 qs1_w1 = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\qsd1_w1"
 qs1_w2 = "../qsd1_w2"
 qs2_w2 = "../qsd2_w2"
 res_root = "../results"
+masks = "../results/QS1W2"
 
 
 def main_qs1_w1():
 
-    db_images = [[cv2.imread(item)] for item in sorted(glob(os.path.join(db,"*.jpg")))][:]
-    qs_images = [[cv2.imread(item)] for item in sorted(glob(os.path.join(qs1_w1,"*.jpg")))][:]
+    print("Getting images...")
+    db_images = [[cv2.imread(item)] for item in sorted(glob(os.path.join(db,"*.jpg")))]
+    qs_images = [[cv2.imread(item)] for item in sorted(glob(os.path.join(qs1_w2,"*.jpg")))]
+    mask_images = [[cv2.imread(item,0)] for item in sorted(glob(os.path.join(masks,"*.png")))]
+    print("Done.")
 
     # -- DESCRIPTORS -- #
     print("Computing descriptors for database images...")
@@ -34,7 +38,7 @@ def main_qs1_w1():
     print("Computing descriptors for query images...")
     # qs_desc = SubBlockDescriptor(qs_images,None,flag=False)
     # qs_desc.compute_descriptors(grid_blocks=[8,8],quantify=[32,8,8],color_space="hsv")
-    qs_desc = TransformDescriptor(qs_images,None,flag=False)
+    qs_desc = TransformDescriptor(qs_images,mask_images,flag=True)
     qs_desc.compute_descriptors(transform_type="lbp")
     print("Done.")
 
@@ -47,14 +51,8 @@ def main_qs1_w1():
     qs_searcher.search(limit=3)
     print("Done.")
 
-    # -- SAVE RESULTS -- #
-    print("Saving results...")
-    with open(res_root+os.sep+"qs1_w1_result.pkl","wb") as f:
-        pickle.dump(qs_searcher.result,f)
-    print("Done.")
-
     # -- EVALUATE -- #
-    qs_desc_eval = EvaluateDescriptors(qs_searcher.result,os.path.join(res_root,"qs1_w1_gt_corresps.pkl"))
+    qs_desc_eval = EvaluateDescriptors(qs_searcher.result,qs2_w2+os.sep+'gt_corresps.pkl')
     qs_desc_eval.compute_mapatk(limit=1)
     print('DESC MAP1: ['+str(qs_desc_eval.score)+']')
     qs_desc_eval.compute_mapatk(limit=3)

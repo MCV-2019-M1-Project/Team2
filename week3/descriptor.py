@@ -125,9 +125,10 @@ class TransformDescriptor():
 		self.dct_blocks = dct_blocks
 		print('--- COMPUTING DESCRIPTORS --- ')
 		for k,images in enumerate(self.img_list):
+			print(str(k)+' out of '+str(len(self.img_list)))
 			self.result[k] = []
 			for i,paint in enumerate(images):
-				self.result[k].append(self._compute_features(img,self.mask_list[k][i]))
+				self.result[k].append(self._compute_features(paint,self.mask_list[k][i]))
 		print('--- DONE --- ')
 
 	def clear_memory(self):
@@ -146,6 +147,8 @@ class TransformDescriptor():
 	def _compute_lbp(self,img,mask):
 		features = []
 		img = cv2.resize(img,(500,500))
+		if mask is not None:
+			mask = cv2.resize(mask,(500,500))
 		img = cv2.cvtColor(img,cv2.COLOR_RGB2GRAY)
 		for i in range(self.lbp_blocks):
 			for j in range(self.lbp_blocks):
@@ -155,7 +158,7 @@ class TransformDescriptor():
 						int((j/self.lbp_blocks)*mask.shape[1]):int(((j+1)/self.lbp_blocks)*mask.shape[1])]
 				new_img = img[int((i/self.lbp_blocks)*img.shape[0]):int(((i+1)/self.lbp_blocks)*img.shape[0]),
 					int((j/self.lbp_blocks)*img.shape[1]):int(((j+1)/self.lbp_blocks)*img.shape[1])]
-				feature = self.self._lbp(new_img,new_mask,numPoints=15,radius=3)
+				feature = self._lbp(new_img,new_mask,numPoints=15,radius=3)
 				features.extend(feature)
 		return features
 
