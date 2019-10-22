@@ -45,6 +45,7 @@ def mahalanobis_distance(x,y):
     V = np.cov(np.array([x,y]).T)
     Iv = np.linalg.inv(V)
     return mahalanobis(x, y, IV)
+    
 def hellinger_kernel(x,y):
     """FUNCTION::HELLINGER_KERNEL:
         >- Returns: The hellinger kernel between two arrays."""
