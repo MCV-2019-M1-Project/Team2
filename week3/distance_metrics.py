@@ -1,6 +1,7 @@
 # -- DISTANCE_METRICS -- #
 
 # -- IMPORTS -- #
+from scipy.spatial.distance import mahalanobis
 import numpy as np
 import math as m
 
@@ -38,7 +39,12 @@ def histogram_intersection(x,y):
         >- Returns: The histogram intersection between two arrays.
         Works well with histograms."""
     return np.sum(np.minimum(x,y),axis=-1)
-
+def mahalanobis_distance(x,y):
+    """FUNCTION::MAHALANOBIS_DISTANCE:
+        >- Returns: The Mahalanobis distance between two arrays."""
+    V = np.cov(np.array([x,y]).T)
+    Iv = np.linalg.inv(V)
+    return mahalanobis(x, y, IV)
 def hellinger_kernel(x,y):
     """FUNCTION::HELLINGER_KERNEL:
         >- Returns: The hellinger kernel between two arrays."""
