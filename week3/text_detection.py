@@ -42,19 +42,20 @@ def get_text_single_painting_img(img_path):
     return text
 
 
-def get_texts_from_image(img_path):
+def get_texts_from_image(img_path, need_to_cut=True):
     print("Work on img", img_path)
-    mask = computeEdgesToCountPaintings(img_path)
-    count, cut = countNumberPaintingsBasedOnEdges(mask, img_path)
     img_paths = []
-    if count == 2:
-        imgs = splitImageInTwo(img_path, cut)
-        for i, img in enumerate(imgs, 1):
-            cut_img_path = img_path.replace(".jpg", "_cut_text_" + str(i) + ".jpg")
-            cv2.imwrite(cut_img_path, img)
-            img_paths.append(cut_img_path)
-    else:
-        img_paths = [img_path]
+    if need_to_cut:
+        mask = computeEdgesToCountPaintings(img_path)
+        count, cut = countNumberPaintingsBasedOnEdges(mask, img_path)
+        if count == 2:
+            imgs = splitImageInTwo(img_path, cut)
+            for i, img in enumerate(imgs, 1):
+                cut_img_path = img_path.replace(".jpg", "_cut_text_" + str(i) + ".jpg")
+                cv2.imwrite(cut_img_path, img)
+                img_paths.append(cut_img_path)
+        else:
+            img_paths = [img_path]
 
     texts = []
     for path in img_paths:
@@ -63,9 +64,9 @@ def get_texts_from_image(img_path):
     return texts
 
 
-def write_all_text_files(img_folder):
+def write_all_text_files(img_folder, need_to_cut=True):
     for img_path in sorted(glob(os.path.join(img_folder, "*.jpg")))[:]:
-        texts = get_texts_from_image(img_path)
+        texts = get_texts_from_image(img_path, need_to_cut)
         text_path = img_path.replace(".jpg", ".txt")
         with open(text_path, 'w') as w:
             for text in texts:
@@ -74,7 +75,7 @@ def write_all_text_files(img_folder):
     return 0
 
 
-def text_based_search(img_folder):
+def text_based_search(img_folder, need_to_cut=True):
     def compare(bbdd_path, text):
         with open(bbdd_path, 'r') as r:
             bbdd_text = r.read()
@@ -85,7 +86,7 @@ def text_based_search(img_folder):
     results = []
     for img_path in sorted(glob(os.path.join(img_folder, "*.jpg")))[:]:
         result = []
-        texts = get_texts_from_image(img_path)
+        texts = get_texts_from_image(img_path, need_to_cut)
         for text in texts:
             f = lambda bbdd: compare(bbdd, text)
             bbdd_paths = sorted(glob(os.path.join(database_folder, "*.txt")))
@@ -97,6 +98,7 @@ def text_based_search(img_folder):
 
 
 if __name__ == '__main__':
-    imgs_folder = "../qsd2_w3"
-    write_all_text_files(imgs_folder)
-    text_based_search(imgs_folder)
+    imgs_folder = "../qsd1_w3"
+    need_to_cut = False
+    write_all_text_files(imgs_folder, need_to_cut)
+    text_based_search(imgs_folder, need_to_cut)
