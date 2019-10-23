@@ -56,6 +56,8 @@ def get_texts_from_image(img_path, need_to_cut=True):
                 img_paths.append(cut_img_path)
         else:
             img_paths = [img_path]
+    else:
+        img_paths = [img_path]
 
     texts = []
     for path in img_paths:
@@ -77,28 +79,35 @@ def write_all_text_files(img_folder, need_to_cut=True):
 
 def text_based_search(img_folder, need_to_cut=True):
     def compare(bbdd_path, text):
-        with open(bbdd_path, 'r') as r:
+        with open(bbdd_path, 'r', encoding='utf-8') as r:
             bbdd_text = r.read()
-        return jaccard_distance(bbdd_text, text)
+            author_start = bbdd_text.find('(') + 2
+            author_end = bbdd_text.find(',') - 1
+            author = bbdd_text[author_start: author_end]
+        print(author + " vs " + text)
+        return jaccard_distance(author, text)
 
-    database_folder = "../databases"
-    k = 10
+    database_folder = "../database"
+    k = 2
     results = []
     for img_path in sorted(glob(os.path.join(img_folder, "*.jpg")))[:]:
         result = []
         texts = get_texts_from_image(img_path, need_to_cut)
         for text in texts:
+            print("Text: " + text)
             f = lambda bbdd: compare(bbdd, text)
             bbdd_paths = sorted(glob(os.path.join(database_folder, "*.txt")))
-            result.append(heapq.nsmallest(k,
-                                           bbdd_paths,
-                                           key=f))
+            most_similar = heapq.nlargest(k, bbdd_paths, key=f)
+
+            result.append(most_similar)
+        print(result)
         results.append(result)
+
     return results
 
 
 if __name__ == '__main__':
     imgs_folder = "../qsd1_w3"
     need_to_cut = False
-    write_all_text_files(imgs_folder, need_to_cut)
+    #write_all_text_files(imgs_folder, need_to_cut)
     text_based_search(imgs_folder, need_to_cut)
