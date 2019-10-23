@@ -35,6 +35,8 @@ def get_text_single_painting_img(img_path):
     cv2.imwrite(img_path.replace(".jpg", "_textboxmask.png"), mask)
     text_img = cv2.bitwise_and(img, img, mask=~mask)
     cropped_text = text_img[bbox[1]: bbox[3], bbox[0]: bbox[2]]
+    cropped_text = cv2.medianBlur(cropped_text, 3)
+    cropped_text = cv2.GaussianBlur(cropped_text, (5, 5), 0)
     text_img_path = img_path.replace(".jpg", "_text.png")
     cv2.imwrite(text_img_path, cropped_text)
     text = detect_text(text_img_path)
@@ -67,7 +69,7 @@ def get_texts_from_image(img_path, need_to_cut=True):
 
 
 def write_all_text_files(img_folder, need_to_cut=True):
-    for img_path in sorted(glob(os.path.join(img_folder, "*.jpg")))[:]:
+    for img_path in sorted(glob(os.path.join(img_folder, "*05.jpg")))[:]:
         texts = get_texts_from_image(img_path, need_to_cut)
         text_path = img_path.replace(".jpg", ".txt")
         with open(text_path, 'w') as w:
@@ -109,5 +111,5 @@ def text_based_search(img_folder, need_to_cut=True):
 if __name__ == '__main__':
     imgs_folder = "../qsd1_w3"
     need_to_cut = False
-    #write_all_text_files(imgs_folder, need_to_cut)
-    text_based_search(imgs_folder, need_to_cut)
+    write_all_text_files(imgs_folder, need_to_cut)
+    #text_based_search(imgs_folder, need_to_cut)
