@@ -4,11 +4,13 @@ import cv2
 import numpy as np
 import time
 
-        
+
 def TextBoxRemoval(img):
     # Parameters
     resize_size = (1000,1000)
     rectangle_max_min_difference = 10
+    median_rect_perc = 0
+    th_gray = 30
     min_ratio = 0.08
 
     # Resize image
@@ -16,16 +18,28 @@ def TextBoxRemoval(img):
     img = cv2.resize(img,resize_size)
 
     # Opening and closing separately
-    kernel = np.ones((10,50),np.uint8)
+    kernel_size = (10,50)
+    kernel = np.ones(kernel_size,np.uint8)
     dark = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
     bright = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
+
+    dark = np.abs(np.max(dark,axis=2)-np.min(dark,axis=2))
+    dark = cv2.morphologyEx(dark, cv2.MORPH_OPEN, np.ones((5,5),np.uint8))
+    bright = np.abs(np.max(bright,axis=2)-np.min(bright,axis=2))
+    bright = cv2.morphologyEx(bright, cv2.MORPH_OPEN, np.ones((5,5),np.uint8))
+
+    cv2.imwrite(r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\tests_folder\testdark.png",dark)
+    cv2.imwrite(r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\tests_folder\testbright.png",bright)
 
     # Search for largest uniform rectangle on both opening and closing
     rectangles = {"bright": None, "dark": None}
     for mask,mask_name in zip([bright, dark],["bright","dark"]):
+        print("mask_name:",mask_name)
         finished = False
         start_row = 0
-        mask_gray = cv2.cvtColor(mask,cv2.COLOR_BGR2GRAY)
+        # mask_gray = cv2.cvtColor(mask,cv2.COLOR_BGR2GRAY)
+        # mask_gray = mask[:,:,1]
+        mask_gray = mask
         while not finished:
             last_row_ind = -1
             last_col_width = -1
@@ -34,7 +48,14 @@ def TextBoxRemoval(img):
                 for row_ind in range(start_row,mask.shape[0]-int(0.02*mask.shape[0])):
                     indexes = [row_ind,row_ind+int(0.02*mask.shape[0]),int(0.5*mask.shape[1])-int(col_width*0.5),int(0.5*mask.shape[1])+int(col_width*0.5)]
                     rectangle = mask_gray[indexes[0]:indexes[1],indexes[2]:indexes[3]]
-                    if np.max(rectangle)-np.min(rectangle) < rectangle_max_min_difference:
+                    rectangle = rectangle.flatten()
+                    rectangle = np.sort(rectangle)[int(median_rect_perc*rectangle.shape[0]):int((1-median_rect_perc)*rectangle.shape[0])]
+                    mean_rectangle = np.mean(rectangle)
+                    if mask_name == "bright":
+                        cond = mean_rectangle <= th_gray
+                    else:
+                        cond = mean_rectangle <= th_gray
+                    if np.max(rectangle)-np.min(rectangle) < rectangle_max_min_difference and cond:
                         last_row_ind = row_ind
                         break
                 if last_row_ind != -1:
@@ -47,17 +68,32 @@ def TextBoxRemoval(img):
                 last_col_width = col_width
                 indexes = [last_row_ind,last_row_ind+int(0.02*mask.shape[0]),int(0.5*mask.shape[1])-int(col_width*0.5),int(0.5*mask.shape[1])+int(col_width*0.5)]
                 rectangle = mask_gray[indexes[0]:indexes[1],indexes[2]:indexes[3]]
-                if np.max(rectangle)-np.min(rectangle) > rectangle_max_min_difference:
+                rectangle = rectangle.flatten()
+                rectangle = np.sort(rectangle)[int(median_rect_perc*rectangle.shape[0]):int((1-median_rect_perc)*rectangle.shape[0])]
+                mean_rectangle = np.mean(rectangle)
+                if mask_name == "bright":
+                    cond = mean_rectangle <= th_gray
+                else:
+                    cond = mean_rectangle <= th_gray
+                if np.max(rectangle)-np.min(rectangle) > rectangle_max_min_difference and cond:
                     last_col_width = col_width-1
                     break
 
             for row_length in range(int(0.02*mask.shape[0]),mask.shape[0]-int(0.02*mask.shape[0])):
                 indexes = [last_row_ind,last_row_ind+row_length,int(0.5*mask.shape[1])-int(last_col_width*0.5),int(0.5*mask.shape[1])+int(last_col_width*0.5)]
                 rectangle = mask_gray[indexes[0]:indexes[1],indexes[2]:indexes[3]]
-                if np.max(rectangle)-np.min(rectangle) > rectangle_max_min_difference:
+                rectangle = rectangle.flatten()
+                rectangle = np.sort(rectangle)[int(median_rect_perc*rectangle.shape[0]):int((1-median_rect_perc)*rectangle.shape[0])]
+                mean_rectangle = np.mean(rectangle)
+                if mask_name == "bright":
+                    cond = mean_rectangle <= th_gray
+                else:
+                    cond = mean_rectangle <= th_gray
+                if np.max(rectangle)-np.min(rectangle) > rectangle_max_min_difference and cond:
                     break
 
             ratio = row_length*original_size[0]/((int(0.5*mask.shape[1])+int(last_col_width*0.5)-int(0.5*mask.shape[1])+int(last_col_width*0.5))*original_size[1])
+            print("ratio:",ratio,"last_row_ind:",last_row_ind)
             if ratio > min_ratio:
                 finished = True
                 rectangles[mask_name] = [last_row_ind,row_length,last_col_width]
@@ -68,7 +104,7 @@ def TextBoxRemoval(img):
     if rectangles["bright"] is None and rectangles["dark"] is None:
         mask = np.ones(shape=(mask.shape[0],mask.shape[1]),dtype=np.uint8)*255
         mask = cv2.resize(mask,(original_size[1],original_size[0]))
-        return mask, [[0,0],[mask.shape[1],mask.shape[0]]]
+        return mask, [[0,0],[mask.shape[0],mask.shape[1]]]
     elif rectangles["bright"] is None and rectangles["dark"] is not None:
         last_row_ind = rectangles["dark"][0]
         row_length = rectangles["dark"][1]
@@ -99,14 +135,25 @@ def TextBoxRemoval(img):
         means_bright = (np.abs(mean_0_bright-mean_1_bright)+np.abs(mean_0_bright-mean_2_bright)+np.abs(mean_2_bright-mean_1_bright))/3
         means_dark = (np.abs(mean_0_dark-mean_1_dark)+np.abs(mean_0_dark-mean_2_dark)+np.abs(mean_2_dark-mean_1_dark))/3
 
-        if means_dark < means_bright:
+        if bright_rect.shape[0]*bright_rect.shape[1] < dark_rect.shape[0]*dark_rect.shape[1]:
+            print("decision dark")
             last_row_ind = rectangles["dark"][0]
             row_length = rectangles["dark"][1]
             last_col_width = rectangles["dark"][2]
         else:
+            print("decision bright")
             last_row_ind = rectangles["bright"][0]
             row_length = rectangles["bright"][1]
             last_col_width = rectangles["bright"][2]
+
+        # if means_dark < means_bright:
+        #     last_row_ind = rectangles["dark"][0]
+        #     row_length = rectangles["dark"][1]
+        #     last_col_width = rectangles["dark"][2]
+        # else:
+        #     last_row_ind = rectangles["bright"][0]
+        #     row_length = rectangles["bright"][1]
+        #     last_col_width = rectangles["bright"][2]
 
     tl = [last_row_ind,int(0.5*mask.shape[1])-int(last_col_width*0.5)]
     br = [last_row_ind+row_length,int(0.5*mask.shape[1])+int(last_col_width*0.5)]
