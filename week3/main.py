@@ -29,27 +29,27 @@ def main_qs1w3():
 	db_images = [[cv2.imread(item)] for item in sorted(glob(os.path.join(db,"*.jpg")))]
 	print("Denoising Images...")
 	qs_images = denoiser.tv_bregman(weight=0.01,max_iter=1000,eps=0.001,isotropic=True)
-	query_mask = [[cv2.imread(item,0)] for item in sorted(glob(os.path.join(masks,"*.png")))]
+	#query_mask = [[cv2.imread(item,0)] for item in sorted(glob(os.path.join(masks,"*.png")))]
 	print("Done.")
 
-	#print("Obtaining textbox masks for each painting...")
-	#query_mask = []
-	#query_bbox = []
-	#for ind,img in enumerate(qs_images):
-	#	print(ind,"of",len(qs_images))
-	#	for paint in img:
-	#		mask, textbox = TextBoxRemoval(paint)
-	#		bbox = [textbox[0][1],textbox[0][0],textbox[1][1],textbox[1][0]]
-	#		query_mask.append([mask])
-	#		query_bbox.append([bbox])
-	#		cv2.imwrite(res_root+os.sep+'QS1W3/{0:05d}.png'.format(ind),mask)
-	#print("Done.")
+	print("Obtaining textbox masks for each painting...")
+	query_mask = []
+	query_bbox = []
+	for ind,img in enumerate(qs_images):
+		print(ind,"of",len(qs_images))
+		for paint in img:
+			mask, textbox = TextBoxRemoval(paint)
+			bbox = [textbox[0][1],textbox[0][0],textbox[1][1],textbox[1][0]]
+			query_mask.append([mask])
+			query_bbox.append([bbox])
+			cv2.imwrite(res_root+os.sep+'QS1W3/{0:05d}.png'.format(ind),mask)
+	print("Done.")
 
 	# -- SAVE BBOXES -- #
-	#print("Writing final bboxs...")
-	#with open(os.path.join(res_root,"qs1_bbox.pkl"),'wb') as file:
-	#	pickle.dump(query_bbox,file)
-	#print("Done.")
+	print("Writing final bboxs...")
+	with open(os.path.join(res_root,"qs1_bbox.pkl"),'wb') as file:
+		pickle.dump(query_bbox,file)
+	print("Done.")
 
 	# -- DESCRIPTORS -- #
 	print('Obtaining descriptors.')
