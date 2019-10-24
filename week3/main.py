@@ -6,6 +6,7 @@ from textbox_removal import TextBoxRemoval
 from descriptor import SubBlockDescriptor,TransformDescriptor
 from searcher import Searcher
 from evaluation import EvaluateDescriptors
+from noise import Denoise
 import numpy as np
 import pickle
 import cv2
@@ -13,50 +14,61 @@ import os
 
 # -- DIRECTORIES -- #
 db = "../bbdd"
-qs1_w1 = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\qsd1_w1"
-qs1_w2 = "../qsd1_w2"
-qs2_w2 = "../qsd2_w2"
+dbt = "../bbdd_text"
+qs1_w3 = "../qsd1_w3"
+qs2_w3 = "../qsd2_w3"
 res_root = "../results"
-masks = "../results/QS1W2"
+masks = "../results/QS1W3"
 
 
-def main_w3_qs1():
+def main_qs1w3():
 
-	print("Getting images...")
+	print("QSD1_W3")
+	print("Reading Images...")
+	denoiser = Denoise(qs1_w3)
 	db_images = [[cv2.imread(item)] for item in sorted(glob(os.path.join(db,"*.jpg")))]
-	qs_images = [[cv2.imread(item)] for item in sorted(glob(os.path.join(qs1_w2,"*.jpg")))]
-	mask_images = [[cv2.imread(item,0)] for item in sorted(glob(os.path.join(masks,"*.png")))]
+	print("Denoising Images...")
+	qs_images = denoiser.tv_bregman(weight=0.01,max_iter=1000,eps=0.001,isotropic=True)
+	print("Done.")
+
+	print("Obtaining textbox masks for each painting...")
+	query_mask = []
+	query_bbox = []
+	for ind,img in enumerate(qs_images):
+		print(ind,"of",len(qs_images))
+		for paint in img:
+			mask, textbox = TextBoxRemoval(paint)
+			bbox = [textbox[0][1],textbox[0][0],textbox[1][1],textbox[1][0]]
+			query_mask.append([mask])
+			query_bbox.append([bbox])
+			cv2.imwrite(res_root+os.sep+'QS1W3/{0:05d}.png'.format(ind),mask)
+	print("Done.")
+
+	# -- SAVE BBOXES -- #
+	print("Writing final bboxs...")
+	with open(os.path.join(res_root,"qs1_bbox.pkl"),'wb') as file:
+		pickle.dump(query_bbox,file)
 	print("Done.")
 
 	# -- DESCRIPTORS -- #
-	print("Computing descriptors for database images...")
-	# db_desc = SubBlockDescriptor(db_images,None,flag=False)
-	# db_desc.compute_descriptors(grid_blocks=[8,8],quantify=[32,8,8],color_space="hsv")
+	print('Obtaining descriptors.')
 	db_desc = TransformDescriptor(db_images,None,flag=False)
-	db_desc.compute_descriptors(transform_type="lbp")
-	print("Done.")
-	print("Computing descriptors for query images...")
-	# qs_desc = SubBlockDescriptor(qs_images,None,flag=False)
-	# qs_desc.compute_descriptors(grid_blocks=[8,8],quantify=[32,8,8],color_space="hsv")
-	qs_desc = TransformDescriptor(qs_images,mask_images,flag=True)
-	qs_desc.compute_descriptors(transform_type="lbp")
-	print("Done.")
+	db_desc.compute_descriptors(transform_type='hog')
+	q1_desc = TransformDescriptor(qs_images,query_mask)
+	q1_desc.compute_descriptors(transform_type='hog')
 
 	# -- SEARCH -- #
-	print("Searching...")
-	qs_searcher = Searcher(db_desc.result,qs_desc.result)
-	# qs_searcher = SearcherMultiprocess(db_desc.result,qs_desc.result,num_cores=3)
+	q1_searcher = Searcher(db_desc.result,q1_desc.result)
 	db_desc.clear_memory()
-	qs_desc.clear_memory()
-	qs_searcher.search(limit=3)
+	q1_desc.clear_memory()
+	q1_searcher.search(limit=3)
 	print("Done.")
 
-	# -- EVALUATE -- #
-	qs_desc_eval = EvaluateDescriptors(qs_searcher.result,qs1_w2+os.sep+'gt_corresps.pkl')
-	qs_desc_eval.compute_mapatk(limit=1)
-	print('DESC MAP1: ['+str(qs_desc_eval.score)+']')
-	qs_desc_eval.compute_mapatk(limit=3)
-	print('DESC MAP3: ['+str(qs_desc_eval.score)+']')
+	q1_eval = EvaluateDescriptors(q1_searcher.result,qs1_w3+os.sep+'gt_corresps.pkl')
+	q1_eval.compute_mapatk(limit=1)
+	print('DESC MAP1: ['+str(q1_eval.score)+']')
+	q1_eval.compute_mapatk(limit=3)
+	print('DESC MAP3: ['+str(q1_eval.score)+']')
 
 
 def main_qs2():
@@ -173,4 +185,4 @@ def main_qs2():
 	print('DESC MAP3: ['+str(qs_desc_eval.score)+']')
 
 if __name__ == "__main__":
-	main_qs2()
+	main_qs1w3()

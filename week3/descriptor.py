@@ -3,6 +3,8 @@
 # -- IMPORTS -- #
 from skimage import feature as F
 from glob import glob
+import PIL as pil
+import pytesseract
 import numpy as np
 import pickle
 import cv2
@@ -143,6 +145,8 @@ class TransformDescriptor():
 			return self._compute_lbp(img,mask)
 		elif self.transform_type == 'dct':
 			return self._compute_dct(img,mask)
+		elif self.transform_type == 'hog':
+			return self._compute_hog(img,mask)
 		
 	def _compute_lbp(self,img,mask):
 		features = []
@@ -158,7 +162,7 @@ class TransformDescriptor():
 						int((j/self.lbp_blocks)*mask.shape[1]):int(((j+1)/self.lbp_blocks)*mask.shape[1])]
 				new_img = img[int((i/self.lbp_blocks)*img.shape[0]):int(((i+1)/self.lbp_blocks)*img.shape[0]),
 					int((j/self.lbp_blocks)*img.shape[1]):int(((j+1)/self.lbp_blocks)*img.shape[1])]
-				feature = self._lbp(new_img,new_mask,numPoints=15,radius=3)
+				feature = self._lbp(new_img,new_mask,numPoints=8,radius=2)
 				features.extend(feature)
 		return features
 
@@ -194,3 +198,34 @@ class TransformDescriptor():
 
 	def _zigzag(self,a):
 		return np.concatenate([np.diagonal(a[::-1,:], i)[::(2*(i % 2)-1)] for i in range(1-a.shape[0], a.shape[0])])
+
+	def _compute_hog(self,img,mask):
+		new_img = cv2.bitwise_and(img,img,mask = mask)
+		resized = cv2.resize(new_img,(128,256),cv2.INTER_AREA)
+		winSize = (128,256)
+		blockSize = (16,16)
+		blockStride = (8,8)
+		cellSize = (8,8)
+		nbins = 5
+		derivAperture = 1
+		winSigma = 4.
+		histogramNormType = 0
+		L2HysThreshold = 2.0000000000000001e-01
+		gammaCorrection = 0
+		nlevels = 64
+		hog = cv2.HOGDescriptor(winSize,blockSize,blockStride,cellSize,nbins,derivAperture,winSigma,
+                        histogramNormType,L2HysThreshold,gammaCorrection,nlevels)
+		feature = hog.compute(resized,winStride=(8,8),padding=(8,8),locations=None).tolist()
+		return [item[0] for item in feature]
+		
+
+class TextDescriptor():
+	"""CLASS::TextDescriptor:
+		>- Class in charge of computing the descriptors for all the images from a directory."""
+	def __init__(self,img_list,bbox_list):
+		self.img_list = img_list
+		self.bbox_list = bbox_list
+		
+	def compute_descriptors(self):
+		
+

@@ -30,7 +30,7 @@ class Denoise():
                                     bins=bins,
                                     mode=mode,
                                     multichannel=True) for item in self.img]
-        return [cv2.cvtColor(np.array(item,np.uint8),cv2.COLOR_RGB2BGR) for item in denoised]
+        return [[cv2.cvtColor(np.array(item,np.uint8),cv2.COLOR_RGB2BGR)] for item in denoised]
     
     def nl_means(self,patch_size=7,patch_distance=11,cut_off=0.1,fast_mode=True,sigma=0.0):
         denoised = [R.denoise_nl_means(np.array(item,np.float32),
@@ -39,7 +39,7 @@ class Denoise():
                                     h=cut_off,
                                     fast_mode=fast_mode,
                                     sigma=sigma) for item in self.img]
-        return [cv2.cvtColor(np.array(item,np.uint8),cv2.COLOR_RGB2BGR) for item in denoised]
+        return [[cv2.cvtColor(np.array(item,np.uint8),cv2.COLOR_RGB2BGR)] for item in denoised]
 
     def tv_bregman(self,weight,max_iter=100,eps=0.001,isotropic=True):
         denoised = [R.denoise_tv_bregman(np.array(item,np.float32),
@@ -47,7 +47,7 @@ class Denoise():
                                     max_iter=max_iter,
                                     eps=eps,
                                     isotropic=isotropic) for item in self.img]
-        return [cv2.cvtColor(np.array(item,np.uint8),cv2.COLOR_RGB2BGR) for item in denoised]
+        return [[cv2.cvtColor(np.array(item,np.uint8),cv2.COLOR_RGB2BGR)] for item in denoised]
 
     def tv_chambolle(self,weight=0.1,eps=0.0002,max_iter=200):
         denoised = [R.denoise_tv_chambolle(np.array(item,np.float32),
@@ -55,7 +55,7 @@ class Denoise():
                                         eps=eps,
                                         n_iter_max=max_iter,
                                         multichannel=True) for item in self.img]
-        return [cv2.cvtColor(np.array(item,np.uint8),cv2.COLOR_RGB2BGR) for item in denoised]
+        return [[cv2.cvtColor(np.array(item,np.uint8),cv2.COLOR_RGB2BGR)] for item in denoised]
 
     def wavelet(self,sigma=None,wavelet='db1',mode='soft',wav_lev=None,method='BayesShrink'):
         denoised = [R.denoise_wavelet(np.array(item,np.float32),
@@ -66,7 +66,7 @@ class Denoise():
                                 convert2ycbcr=True,
                                 method=method,
                                 multichannel=True) for item in self.img]
-        return [cv2.cvtColor(np.array(item,np.float32),cv2.COLOR_RGB2BGR) for item in denoised]
+        return [[cv2.cvtColor(np.array(item,np.float32),cv2.COLOR_RGB2BGR)] for item in denoised]
 
     def fast_nlmean(self,h=10,hC=10,template_size=7,win_size=21):
         denoised = [cv2.fastNlMeansDenoisingColored(item,
@@ -74,6 +74,6 @@ class Denoise():
                                                 hColor=hC,
                                                 templateWindowSize=template_size,
                                                 searchWindowSize=win_size) for item in self.img]
-        return [cv2.cvtColor(np.array(item,np.uint8),cv2.COLOR_RGB2BGR) for item in denoised]
+        return [[cv2.cvtColor(np.array(item,np.uint8),cv2.COLOR_RGB2BGR)] for item in denoised]
 
        
