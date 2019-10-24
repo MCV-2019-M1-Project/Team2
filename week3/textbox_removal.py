@@ -28,8 +28,8 @@ def TextBoxRemoval(img):
     bright = np.abs(np.max(bright,axis=2)-np.min(bright,axis=2))
     bright = cv2.morphologyEx(bright, cv2.MORPH_OPEN, np.ones((5,5),np.uint8))
 
-    cv2.imwrite(r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\tests_folder\testdark.png",dark)
-    cv2.imwrite(r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\tests_folder\testbright.png",bright)
+    #cv2.imwrite(r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\tests_folder\testdark.png",dark)
+    #cv2.imwrite(r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\tests_folder\testbright.png",bright)
 
     # Search for largest uniform rectangle on both opening and closing
     rectangles = {"bright": None, "dark": None}

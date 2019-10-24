@@ -227,5 +227,18 @@ class TextDescriptor():
 		self.bbox_list = bbox_list
 		
 	def compute_descriptors(self):
-		
+		print('--- COMPUTING DESCRIPTORS --- ')
+		for k,images in enumerate(self.img_list):
+			print(str(k)+' out of '+str(len(self.img_list)))
+			self.result[k] = []
+			for i,paint in enumerate(images):
+				self.result[k].append(self._compute_features(paint,self.bbox_list[k][i]))
+		print('--- DONE --- ')
+
+	def _compute_features(self,img,bbox):
+		features = []
+		cropped_text = img[bbox[1]: bbox[3], bbox[0]: bbox[2]]
+		features.append([pytesseract.image_to_string(pil.Image.fromarray(cropped_text))])
+		return features
+
 

@@ -29,33 +29,34 @@ def main_qs1w3():
 	db_images = [[cv2.imread(item)] for item in sorted(glob(os.path.join(db,"*.jpg")))]
 	print("Denoising Images...")
 	qs_images = denoiser.tv_bregman(weight=0.01,max_iter=1000,eps=0.001,isotropic=True)
+	query_mask = [[cv2.imread(item,0)] for item in sorted(glob(os.path.join(masks,"*.png")))]
 	print("Done.")
 
-	print("Obtaining textbox masks for each painting...")
-	query_mask = []
-	query_bbox = []
-	for ind,img in enumerate(qs_images):
-		print(ind,"of",len(qs_images))
-		for paint in img:
-			mask, textbox = TextBoxRemoval(paint)
-			bbox = [textbox[0][1],textbox[0][0],textbox[1][1],textbox[1][0]]
-			query_mask.append([mask])
-			query_bbox.append([bbox])
-			cv2.imwrite(res_root+os.sep+'QS1W3/{0:05d}.png'.format(ind),mask)
-	print("Done.")
+	#print("Obtaining textbox masks for each painting...")
+	#query_mask = []
+	#query_bbox = []
+	#for ind,img in enumerate(qs_images):
+	#	print(ind,"of",len(qs_images))
+	#	for paint in img:
+	#		mask, textbox = TextBoxRemoval(paint)
+	#		bbox = [textbox[0][1],textbox[0][0],textbox[1][1],textbox[1][0]]
+	#		query_mask.append([mask])
+	#		query_bbox.append([bbox])
+	#		cv2.imwrite(res_root+os.sep+'QS1W3/{0:05d}.png'.format(ind),mask)
+	#print("Done.")
 
 	# -- SAVE BBOXES -- #
-	print("Writing final bboxs...")
-	with open(os.path.join(res_root,"qs1_bbox.pkl"),'wb') as file:
-		pickle.dump(query_bbox,file)
-	print("Done.")
+	#print("Writing final bboxs...")
+	#with open(os.path.join(res_root,"qs1_bbox.pkl"),'wb') as file:
+	#	pickle.dump(query_bbox,file)
+	#print("Done.")
 
 	# -- DESCRIPTORS -- #
 	print('Obtaining descriptors.')
 	db_desc = TransformDescriptor(db_images,None,flag=False)
-	db_desc.compute_descriptors(transform_type='hog')
+	db_desc.compute_descriptors(transform_type='lbp')
 	q1_desc = TransformDescriptor(qs_images,query_mask)
-	q1_desc.compute_descriptors(transform_type='hog')
+	q1_desc.compute_descriptors(transform_type='lbp')
 
 	# -- SEARCH -- #
 	q1_searcher = Searcher(db_desc.result,q1_desc.result)
@@ -71,10 +72,13 @@ def main_qs1w3():
 	print('DESC MAP3: ['+str(q1_eval.score)+']')
 
 
-def main_qs2():
+def main_qs2w3():
 	# -- GET IMAGES -- #
-	folder_path = qs2_w2
-	img_paths = sorted(glob(folder_path+os.sep+"*.jpg"))
+	print("Denoising Images...")
+	denoiser = Denoise(qs2_w3)
+	folder_path = qs2_w3
+	img_paths = denoiser.tv_bregman(weight=0.01,max_iter=1000,eps=0.001,isotropic=True)
+	print("Done.")
 	print("Obtaining list of paintings...")
 	img2paintings = getListOfPaintings(folder_path,"EDGES")
 	db_images = []
@@ -90,7 +94,7 @@ def main_qs2():
 		for painting in img:
 			mask, mean_points = BackgroundMask4(painting)
 			img2paintings_mask[-1].append({"painting":painting,"mask":mask,"mean_points":mean_points})
-		#cv2.imwrite(res_root+os.sep+"QS2W2/{0:05d}.png".format(ind),np.concatenate([item["mask"] for item in img2paintings_mask[-1]],axis=1))
+		#cv2.imwrite(res_root+os.sep+"QS2W3/{0:05d}.png".format(ind),np.concatenate([item["mask"] for item in img2paintings_mask[-1]],axis=1))
 	print("Done.")
 
 	print("Obtaining textbox masks for each painting...")
@@ -149,7 +153,7 @@ def main_qs2():
 
 	print("Writing final masks...")
 	for ind,final_mask in enumerate(final_masks):
-		cv2.imwrite(res_root+os.sep+"QS2W2/{0:05d}.png".format(ind),final_mask)
+		cv2.imwrite(res_root+os.sep+"QS2W3/{0:05d}.png".format(ind),final_mask)
 	print("Done.")
 
 	print("Obtaining descriptors.")
@@ -159,13 +163,13 @@ def main_qs2():
 	# db_desc = SubBlockDescriptor(db_images,None,flag=False)
 	# db_desc.compute_descriptors(grid_blocks=[8,8],quantify=[32,8,8],color_space="hsv")
 	db_desc = TransformDescriptor(db_images,None,flag=False)
-	db_desc.compute_descriptors(transform_type="lbp")
+	db_desc.compute_descriptors(transform_type="hog")
 	print("Done.")
 	print("Computing descriptors for query images...")
 	# qs_desc = SubBlockDescriptor(qs_images,None,flag=False)
 	# qs_desc.compute_descriptors(grid_blocks=[8,8],quantify=[32,8,8],color_space="hsv")
 	qs_desc = TransformDescriptor(img2paintings,img2paintings_final_mask,flag=True)
-	qs_desc.compute_descriptors(transform_type="lbp")
+	qs_desc.compute_descriptors(transform_type="hog")
 	print("Done.")
 
 	# -- SEARCH -- #
@@ -178,7 +182,7 @@ def main_qs2():
 	print("Done.")
 
 	# -- EVALUATE -- #
-	qs_desc_eval = EvaluateDescriptors(qs_searcher.result,qs2_w2+os.sep+'gt_corresps.pkl')
+	qs_desc_eval = EvaluateDescriptors(qs_searcher.result,qs2_w3+os.sep+'gt_corresps.pkl')
 	qs_desc_eval.compute_mapatk(limit=1)
 	print('DESC MAP1: ['+str(qs_desc_eval.score)+']')
 	qs_desc_eval.compute_mapatk(limit=3)
