@@ -23,48 +23,54 @@ class Denoise():
             self.img.append(cv2.cvtColor(cv2.imread(path),cv2.COLOR_BGR2RGB))
     
     def bilateral(self,win_size=None,sigma_spatial=1,bins=1000,mode='constant'):
-        return [R.denoise_bilateral(item,
+        denoised = [R.denoise_bilateral(item,
                                     win_size=win_size,
                                     sigma_color=None,
                                     sigma_spatial=sigma_spatial,
                                     bins=bins,
                                     mode=mode) for item in self.img]
+        return [cv2.cvtColor(item,cv2.COLOR_RGB2BGR) for item in denoised]
     
     def nl_means(self,patch_size=7,patch_distance=11,cut_off=0.1,fast_mode=True,sigma=0.0):
-        return [R.denoise_nl_means(item,
+        denoised = [R.denoise_nl_means(item,
                                     patch_size=patch_size,
                                     patch_distance=patch_distance,
                                     h=cut_off,
                                     fast_mode=fast_mode,
                                     sigma=sigma) for item in self.img]
+        return [cv2.cvtColor(item,cv2.COLOR_RGB2BGR) for item in denoised]
 
     def tv_bregman(self,weight,max_iter=100,eps=0.001,isotropic=True):
-        return [R.denoise_tv_bregman(item,
+        denoised = [R.denoise_tv_bregman(item,
                                     weight=weight,
                                     max_iter=max_iter,
                                     eps=eps,
                                     isotropic=isotropic) for item in self.img]
+        return [cv2.cvtColor(item,cv2.COLOR_RGB2BGR) for item in denoised]
 
     def tv_chambolle(self,weight=0.1,eps=0.0002,max_iter=200):
-        return [R.denoise_tv_chambolle(item,
+        denoised = [R.denoise_tv_chambolle(item,
                                         weight=weight,
                                         eps=eps,
                                         n_iter_max=max_iter) for item in self.img]
+        return [cv2.cvtColor(item,cv2.COLOR_RGB2BGR) for item in denoised]
 
     def wavelet(self,sigma=None,wavelet='db1',mode='soft',wav_lev=None,method='BayesShrink'):
-        return [R.denoise_wavelet(item,
+        denoised = [R.denoise_wavelet(item,
                                 sigma=sigma,
                                 wavelet=wavelet,
                                 mode=mode,
                                 wavelet_levels=wav_lev,
                                 convert2ycbcr=True,
                                 method=method) for item in self.img]
+        return [cv2.cvtColor(item,cv2.COLOR_RGB2BGR) for item in denoised]
 
     def fast_nlmean(self,h=10,hC=10,template_size=7,win_size=21):
-        return [cv2.fastNlMeansDenoisingColored(item,
+        denoised = [cv2.fastNlMeansDenoisingColored(item,
                                                 h=h,
                                                 hColor=hC,
                                                 templateWindowSize=template_size,
                                                 searchWindowSize=win_size) for item in self.img]
+        return [cv2.cvtColor(item,cv2.COLOR_RGB2BGR) for item in denoised]
 
         
