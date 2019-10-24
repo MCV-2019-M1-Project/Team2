@@ -13,12 +13,13 @@ import cv2
 import os
 
 # -- DIRECTORIES -- #
-db = "../bbdd"
+db = r"C:\Users\PC\Documents\Roger\Master\M1\Project\bbdd"
 dbt = "../bbdd_text"
-qs1_w3 = "../qsd1_w3"
-qs2_w3 = "../qsd2_w3"
+qs1_w3 = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\qsd1_w3"
+qs2_w3 = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\qsd2_w3"
 res_root = "../results"
 masks = "../results/QS1W3"
+tests_path = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\tests_folder"
 
 
 def main_qs1w3():
@@ -53,10 +54,10 @@ def main_qs1w3():
 
 	# -- DESCRIPTORS -- #
 	print('Obtaining descriptors.')
-	db_desc = TransformDescriptor(db_images,None,flag=False)
-	db_desc.compute_descriptors(transform_type='lbp')
-	q1_desc = TransformDescriptor(qs_images,query_mask)
-	q1_desc.compute_descriptors(transform_type='lbp')
+	db_desc = TransformDescriptor(db_images,None,None,flag=False)
+	db_desc.compute_descriptors(transform_type='hog')
+	q1_desc = TransformDescriptor(qs_images,query_mask,None,flag=True)
+	q1_desc.compute_descriptors(transform_type='hog')
 
 	# -- SEARCH -- #
 	q1_searcher = Searcher(db_desc.result,q1_desc.result)
@@ -75,8 +76,8 @@ def main_qs1w3():
 def main_qs2w3():
 	# -- GET IMAGES -- #
 	print("Denoising Images...")
-	denoiser = Denoise(qs2_w3)
 	folder_path = qs2_w3
+	denoiser = Denoise(folder_path)
 	img_paths = denoiser.tv_bregman(weight=0.01,max_iter=1000,eps=0.001,isotropic=True)
 	print("Done.")
 	print("Obtaining list of paintings...")
@@ -114,6 +115,7 @@ def main_qs2w3():
 			bbox[0] = bbox[0] + painting_items["mean_points"]["left"]
 			bbox[2] = bbox[2] + painting_items["mean_points"]["left"]
 			img2paintings_items[-1].append({"fg_mask":painting_items["mask"],
+											"mean_points":painting_items["mean_points"],
 											"bbox_mask":bbox_mask,
 											"bbox":bbox})
 	print("Done.")
@@ -121,10 +123,12 @@ def main_qs2w3():
 	print("Combining masks in one picture + adapting bboxes...")
 	final_masks = []
 	img2paintings_final_mask = []
+	img2paintings_fg_bboxs = []
 	final_bboxs = []
 	for ind,img in enumerate(img2paintings_items):
 		print(ind,"of",len(img2paintings_items))
 		to_concatenate = []
+		fg_bboxs = []
 		bboxs = []
 		for ind2,painting_items in enumerate(img):
 			total_mask = painting_items["fg_mask"]
@@ -140,6 +144,8 @@ def main_qs2w3():
 				bbox[0] += missing_size
 				bbox[2] += missing_size
 				bboxs.append(bbox)
+			fg_bboxs.append(painting_items["mean_points"])
+		img2paintings_fg_bboxs.append(fg_bboxs)
 		img2paintings_final_mask.append(to_concatenate)
 		final_mask = np.concatenate(to_concatenate,axis=1)
 		final_masks.append(final_mask)
@@ -162,13 +168,13 @@ def main_qs2w3():
 	print("Computing descriptors for database images...")
 	# db_desc = SubBlockDescriptor(db_images,None,flag=False)
 	# db_desc.compute_descriptors(grid_blocks=[8,8],quantify=[32,8,8],color_space="hsv")
-	db_desc = TransformDescriptor(db_images,None,flag=False)
+	db_desc = TransformDescriptor(db_images,None,None,flag=False)
 	db_desc.compute_descriptors(transform_type="hog")
 	print("Done.")
 	print("Computing descriptors for query images...")
 	# qs_desc = SubBlockDescriptor(qs_images,None,flag=False)
 	# qs_desc.compute_descriptors(grid_blocks=[8,8],quantify=[32,8,8],color_space="hsv")
-	qs_desc = TransformDescriptor(img2paintings,img2paintings_final_mask,flag=True)
+	qs_desc = TransformDescriptor(img2paintings,img2paintings_final_mask,img2paintings_fg_bboxs,flag=True)
 	qs_desc.compute_descriptors(transform_type="hog")
 	print("Done.")
 
@@ -189,4 +195,5 @@ def main_qs2w3():
 	print('DESC MAP3: ['+str(qs_desc_eval.score)+']')
 
 if __name__ == "__main__":
-	main_qs1w3()
+	# main_qs1w3()
+	# main_qs2w3()
