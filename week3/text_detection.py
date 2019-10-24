@@ -38,7 +38,7 @@ def get_text_single_painting_img(img_path):
     text_img_path = img_path.replace(".jpg", "_text.png")
     cv2.imwrite(text_img_path, cropped_text)
     text = detect_text(text_img_path)
-    print("TEXT FOUND: ", text)
+    print("Text found: ", text)
     return text
 
 
@@ -84,7 +84,6 @@ def text_based_search(img_folder, need_to_cut=True):
             author_start = bbdd_text.find('(') + 2
             author_end = bbdd_text.find(',') - 1
             author = bbdd_text[author_start: author_end]
-        print(author + " vs " + text)
         return jaccard_distance(author, text)
 
     database_folder = "../database"
@@ -94,13 +93,16 @@ def text_based_search(img_folder, need_to_cut=True):
         result = []
         texts = get_texts_from_image(img_path, need_to_cut)
         for text in texts:
-            print("Text: " + text)
-            f = lambda bbdd: compare(bbdd, text)
+            print("Look for most similar for text: " + text)
+            f = lambda bbdd_pair: compare(bbdd_pair[1], text)
             bbdd_paths = sorted(glob(os.path.join(database_folder, "*.txt")))
-            most_similar = heapq.nlargest(k, bbdd_paths, key=f)
-
-            result.append(most_similar)
-        print(result)
+            bbdd_paths_pair = dict(enumerate(bbdd_paths))
+            most_similar = heapq.nlargest(k, bbdd_paths_pair.items(), key=f)
+            most_similar_idx = []
+            for similar in most_similar:
+                most_similar_idx.append(similar[0])
+            result.append(most_similar_idx)
+            print(most_similar_idx)
         results.append(result)
 
     return results
@@ -109,5 +111,5 @@ def text_based_search(img_folder, need_to_cut=True):
 if __name__ == '__main__':
     imgs_folder = "../qsd1_w3"
     need_to_cut = False
-    #write_all_text_files(imgs_folder, need_to_cut)
+    write_all_text_files(imgs_folder, need_to_cut)
     text_based_search(imgs_folder, need_to_cut)
