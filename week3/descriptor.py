@@ -111,12 +111,15 @@ class LevelDescriptor(SubBlockDescriptor):
 class TransformDescriptor():
 	"""CLASS::TransformDescriptor:
 		>- Class in charge of computing the descriptors for all the images from a directory."""
-	def __init__(self,img_list,mask_list,flag=True):
+	def __init__(self,img_list,mask_list,bbox_list=None,flag=True):
 		self.img_list = img_list
+		self.bbox_list = bbox_list
 		if flag:
 			self.mask_list = mask_list
 		else:
 			self.mask_list = [[None]]*len(self.img_list)
+		if bbox_list is None:
+			self.bbox_list = [[None]]*len(self.img_list)
 		self.result = {}
 
 	def compute_descriptors(self,dct_blocks=8,lbp_blocks=15,transform_type='dct'):
@@ -130,7 +133,7 @@ class TransformDescriptor():
 			print(str(k)+' out of '+str(len(self.img_list)))
 			self.result[k] = []
 			for i,paint in enumerate(images):
-				self.result[k].append(self._compute_features(paint,self.mask_list[k][i]))
+				self.result[k].append(self._compute_features(paint,self.mask_list[k][i],self.bbox_list[k][i]))
 		print('--- DONE --- ')
 
 	def clear_memory(self):
@@ -138,21 +141,24 @@ class TransformDescriptor():
 			>- Deletes the memory allocated that stores data to make it more efficient."""
 		self.result = {}
 	
-	def _compute_features(self,img,mask):
+	def _compute_features(self,img,mask,bbox):
 		"""METHOD::COMPUTE_FEATURES:
 			>- Returns the features obtained."""
 		if self.transform_type == 'lbp':
-			return self._compute_lbp(img,mask)
+			return self._compute_lbp(img,mask,bbox)
 		elif self.transform_type == 'dct':
 			return self._compute_dct(img,mask)
 		elif self.transform_type == 'hog':
-			return self._compute_hog(img,mask)
+			return self._compute_hog(img,mask,bbox)
 		
-	def _compute_lbp(self,img,mask):
+	def _compute_lbp(self,img,mask,bbox):
 		features = []
-		img = cv2.resize(img,(500,500))
 		if mask is not None:
-			mask = cv2.resize(mask,(500,500))
+			if bbox is not None:
+				img = img[bbox["top"]:bbox["bottom"],bbox["left"]:bbox["right"]]
+				mask = mask[bbox["top"]:bbox["bottom"],bbox["left"]:bbox["right"]]
+			mask = cv2.resize(mask,(500,500),interpolation=cv2.INTER_AREA)
+		img = cv2.resize(img,(500,500),interpolation=cv2.INTER_AREA)
 		img = cv2.cvtColor(img,cv2.COLOR_RGB2GRAY)
 		for i in range(self.lbp_blocks):
 			for j in range(self.lbp_blocks):
@@ -199,7 +205,11 @@ class TransformDescriptor():
 	def _zigzag(self,a):
 		return np.concatenate([np.diagonal(a[::-1,:], i)[::(2*(i % 2)-1)] for i in range(1-a.shape[0], a.shape[0])])
 
-	def _compute_hog(self,img,mask):
+	def _compute_hog(self,img,mask,bbox):
+		if mask is not None:
+			if bbox is not None:
+				img = img[bbox["top"]:bbox["bottom"],bbox["left"]:bbox["right"]]
+				mask = mask[bbox["top"]:bbox["bottom"],bbox["left"]:bbox["right"]]
 		new_img = cv2.bitwise_and(img,img,mask = mask)
 		resized = cv2.resize(new_img,(128,256),cv2.INTER_AREA)
 		winSize = (128,256)
