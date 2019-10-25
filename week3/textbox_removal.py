@@ -8,7 +8,7 @@ import time
 def TextBoxRemoval(img):
     # Parameters
     resize_size = (1000,1000)
-    rectangle_max_min_difference = 20
+    rectangle_max_min_difference = 10
     col_width_cut = 10
     th_gray = 30
     min_ratio = 0.08
@@ -36,18 +36,22 @@ def TextBoxRemoval(img):
     # Search for largest uniform rectangle on both opening and closing
     rectangles = {"bright": None, "dark": None}
     for mask,mask_name in zip([bright, dark],["bright","dark"]):
-        print("mask_name:",mask_name)
+        # print("mask_name:",mask_name)
+        mask_gray = mask
         finished = False
         start_row = 0
+        start_col_width = int(0.5*mask.shape[1])
         # mask_gray = cv2.cvtColor(mask,cv2.COLOR_BGR2GRAY)
         # mask_gray = mask[:,:,1]
-        mask_gray = mask
         while not finished:
             last_row_ind = -1
             last_col_width = -1
-            for col_width in range(int(0.5*mask.shape[1]),int(0.1*mask.shape[1]),-2):
+            for col_width in range(start_col_width,int(0.1*mask.shape[1]),-2):
+                # print("col_width:",col_width,"start_row:",start_row)
                 last_col_width = col_width
                 for row_ind in range(start_row,mask.shape[0]-int(0.02*mask.shape[0])):
+                    # print("    row_ind:",row_ind)
+                    start_row = 0
                     indexes = [row_ind,row_ind+int(0.02*mask.shape[0]),int(0.5*mask.shape[1])-int(col_width*0.5),int(0.5*mask.shape[1])+int(col_width*0.5)]
                     rectangle = mask_gray[indexes[0]:indexes[1],indexes[2]:indexes[3]]
                     mean_rectangle = np.mean(rectangle)
@@ -63,6 +67,8 @@ def TextBoxRemoval(img):
 
             if last_row_ind == -1:
                 break
+
+            start_col_width = last_col_width-1
 
             for col_width in range(last_col_width,mask.shape[1],2):
                 last_col_width = col_width
@@ -89,16 +95,18 @@ def TextBoxRemoval(img):
                     break
 
             ratio = row_length*original_size[0]/((int(0.5*mask.shape[1])+int(last_col_width*0.5)-int(0.5*mask.shape[1])+int(last_col_width*0.5))*original_size[1])
-            print("ratio:",ratio,"last_row_ind:",last_row_ind)
+            # print("ratio:",ratio,"last_row_ind:",last_row_ind)
             first_x = last_row_ind
             last_x = last_row_ind+row_length
-            print("first_x:",first_x,"last_x:",last_x)
+            # print("first_x:",first_x,"last_x:",last_x)
             condition = (last_x < row_limits[0]*mask.shape[0] or first_x > row_limits[1]*mask.shape[0])
             if min_ratio < ratio < max_ratio and condition:
                 finished = True
                 rectangles[mask_name] = [last_row_ind,row_length,last_col_width]
             else:
-                start_row = last_row_ind+row_length+1
+                start_row = last_row_ind+1
+                if start_row > mask.shape[0]-int(0.04*mask.shape[0]):
+                    start_row = 0
 
     # Deciding which rectangle to use (the one from opening or closing)
     if rectangles["bright"] is None and rectangles["dark"] is None:
