@@ -17,37 +17,34 @@ MINIMUM_BLACK_WIDTH = 0.1
 MINIMUM_WHITE_WIDTH = 0.1
 
 
-def computeMaskToCountPaintings(img_path):
+def computeMaskToCountPaintings(img):
     closing_kernel_size = CLOSING_KERNEL_SIZE
     closing_kernel = np.ones((closing_kernel_size, closing_kernel_size), np.uint8)
     opening_kernel_size = OPENING_KERNEL_SIZE
     opening_kernel = np.ones((opening_kernel_size, opening_kernel_size), np.uint8)
 
-    print("\nComputing mask with method 2 for img_path: ", img_path)
-    img = cv2.imread(img_path)
+    print("\nComputing mask with method 2")
     orig_shape = img.shape
     img = cv2.resize(img, RESIZE_SHAPE, interpolation=cv2.INTER_AREA)
     mask = BackgroundMask2(img)
 
-    print("\nApplying morphology operations in mask corresponding to: ", img_path)
+    print("\nApplying morphology operations in mask")
     filtered_mask = mask
     filtered_mask = cv2.morphologyEx(filtered_mask, cv2.MORPH_CLOSE, closing_kernel)
     filtered_mask = cv2.morphologyEx(filtered_mask, cv2.MORPH_OPEN, opening_kernel)
     mask = cv2.resize(mask, (orig_shape[1], orig_shape[0]))
-    cv2.imwrite(img_path.replace(".jpg", "_old_mask.png"), mask)
-    cv2.imwrite(img_path.replace(".jpg", "_count_mask.png"), filtered_mask)
     filtered_mask = cv2.resize(filtered_mask, RESIZE_SHAPE)  # (x_length, y_length)
 
     return filtered_mask
 
-def computeEdgesToCountPaintings(img_path):
+def computeEdgesToCountPaintings(img):
     # Read image and resize
-    img = cv2.imread(img_path)
     original_size = img.shape[:2]
     img = cv2.resize(img,(1000,1000))
 
     # Obtain gray level image
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    cv2.imwrite(r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\tests_folder\testpaintcount.png",gray)
 
     # Obtain edges through Canny algorithm
     edges = cv2.Canny(gray,50,150,apertureSize=3)
@@ -59,8 +56,8 @@ def computeEdgesToCountPaintings(img_path):
 
     return edges
 
-def countNumberPaintingsBasedOnMask(mask, img_path):
-    print("\nCounting number of paintings in img_path: ", img_path)
+def countNumberPaintingsBasedOnMask(mask, img):
+    print("\nCounting number of paintings")
     height = mask.shape[0]
     width = mask.shape[1]
     white_threshold = height * THRESHOLD_TO_CONSIDER_SWITCH_TO_WHITE_REGION
@@ -89,13 +86,13 @@ def countNumberPaintingsBasedOnMask(mask, img_path):
     print("Count of paintings: " + str(number_of_white_predominant_regions))
     pixel_count_cut = pixel_count_end_of_first_painting + ((pixel_count_start_of_second_painting - pixel_count_end_of_first_painting) / 2)
     
-    orig_width = cv2.imread(img_path).shape[1]
+    orig_width = img.shape[1]
     pixel_count_cut = int((pixel_count_cut / RESIZE_SHAPE[1]) * orig_width)
 
     return number_of_white_predominant_regions, pixel_count_cut
 
-def countNumberPaintingsBasedOnEdges(mask, img_path):
-    print("\nCounting number of paintings in img_path: ", img_path)
+def countNumberPaintingsBasedOnEdges(mask, img):
+    print("\nCounting number of paintings")
     height = mask.shape[0]
     width = mask.shape[1]
     white_threshold = 0
@@ -150,33 +147,31 @@ def countNumberPaintingsBasedOnEdges(mask, img_path):
     pixel_count_cut = int(pixel_count_end_of_first_painting + ((pixel_count_start_of_second_painting - pixel_count_end_of_first_painting) / 2))
     return number_of_white_predominant_regions, pixel_count_cut
 
-def splitImageInTwo(img_path, cutPoint):
-    print("\nSplitting img_path: " + img_path + " at cutPoint " + str(cutPoint))
-    img = cv2.imread(img_path)
+def splitImageInTwo(img, cutPoint):
+    print("\nSplitting image at cutPoint " + str(cutPoint))
     img1 = img[:,:cutPoint,:]
     img2 = img[:,cutPoint:,:]
-    # cv2.imwrite(img_path.replace(".jpg", "_cut1.png"), img1)
-    # cv2.imwrite(img_path.replace(".jpg", "_cut2.png"), img2)
     return [img1, img2]
 
 class colorRegion(Enum):
     BLACK = 0,
     WHITE = 1
 
-def getListOfPaintings(img_folder,method):
+def getListOfPaintings(img_list,method):
     output = []
-    for img_path in sorted(glob(os.path.join(img_folder, "*.jpg")))[:]:
+    img_list = [item[0] for item in img_list]
+    for img in img_list:
         if method == "MASK":
-            mask = computeMaskToCountPaintings(img_path)
-            count, cut = countNumberPaintingsBasedOnMask(mask, img_path)
+            mask = computeMaskToCountPaintings(img)
+            count, cut = countNumberPaintingsBasedOnMask(mask, img)
         elif method == "EDGES":
-            mask = computeEdgesToCountPaintings(img_path)
-            count, cut = countNumberPaintingsBasedOnEdges(mask, img_path)
+            mask = computeEdgesToCountPaintings(img)
+            count, cut = countNumberPaintingsBasedOnEdges(mask, img)
         if count == 2:
             print("-- Cut at pixel: ", str(cut))
-            output.append(splitImageInTwo(img_path, cut))
+            output.append(splitImageInTwo(img, cut))
         else:
-            output.append([cv2.imread(img_path)])
+            output.append([img])
     return output
 
 

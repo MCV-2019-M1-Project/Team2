@@ -21,6 +21,9 @@ class Denoise():
         self.img = []
         for path in img_paths:
             self.img.append(cv2.cvtColor(cv2.imread(path),cv2.COLOR_BGR2RGB))
+
+    def median_filter(self,size=5):
+        self.img = [cv2.medianBlur(item,size) for item in self.img]
     
     def bilateral(self,win_size=None,sigma_spatial=1,bins=1000,mode='constant'):
         denoised = [R.denoise_bilateral(np.array(item,np.float32),
