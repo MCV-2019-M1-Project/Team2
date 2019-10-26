@@ -131,7 +131,7 @@ class TransformDescriptor():
 		self.dct_blocks = dct_blocks
 		print('--- COMPUTING DESCRIPTORS --- ')
 		for k,images in enumerate(self.img_list):
-			print(str(k)+' out of '+str(len(self.img_list)))
+			#print(str(k)+' out of '+str(len(self.img_list)))
 			self.result[k] = []
 			for i,paint in enumerate(images):
 				self.result[k].append(self._compute_features(paint,self.mask_list[k][i],self.bbox_list[k][i]))
@@ -229,13 +229,15 @@ class TextDescriptor():
 	def compute_descriptors(self):
 		print('--- COMPUTING DESCRIPTORS --- ')
 		for k,images in enumerate(self.img_list):
-			print(str(k)+' out of '+str(len(self.img_list)))
+			#print(str(k)+' out of '+str(len(self.img_list)))
 			self.result[k] = []
 			for i,paint in enumerate(images):
 				self.result[k].append(self._compute_features(paint,self.bbox_list[k][i]))
 		print('--- DONE --- ')
 
 	def _compute_features(self,img,bbox):
+		if isinstance(bbox,dict):
+			bbox = [bbox['left'],bbox['top'],bbox['right'],bbox['bottom']]
 		features = []
 		cropped_text = img[bbox[1]: bbox[3], bbox[0]: bbox[2]]
 		features.append([pytesseract.image_to_string(pil.Image.fromarray(cropped_text))])
@@ -271,7 +273,7 @@ class CombinedDescriptor(SubBlockDescriptor,TransformDescriptor):
 		self.dct_blocks = dct_blocks
 		print('--- COMPUTING DESCRIPTORS --- ')
 		for k,images in enumerate(self.img_list):
-			print(str(k)+' out of '+str(len(self.img_list)))
+			#print(str(k)+' out of '+str(len(self.img_list)))
 			self.result[k] = []
 			for i,paint in enumerate(images):
 				self.result[k].append(self._compute_features(paint,self.mask_list[k][i],self.bbox_list[k][i]))

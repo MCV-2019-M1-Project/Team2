@@ -51,6 +51,8 @@ class SearcherText(Searcher):
         >- Class to search the top K most similar images given the database and query features."""
     def __init__(self,data_desc,query_desc):
         super(SearcherText,self).__init__(data_desc,query_desc)
+        print(data_desc)
+        print(query_desc)
 
     def search(self,limit=3):
         """METHOD::SEARCH
@@ -77,4 +79,45 @@ class SearcherText(Searcher):
             print('-------')
         print('--- DONE --- ')
 
+class SearcherCombined():
+    """CLASS::SearcherText:
+        >- Class to search the top K most similar images given the database and query features."""
+    def __init__(self,data_desc1,query_desc1,data_desc2,query_desc2):
+        self.data1 = data_desc1
+        self.data2 = data_desc2
+        self.query1 = query_desc1
+        self.query2 = query_desc2
+        self.result = []
+
+    def search(self,limit=3):
+        """METHOD::SEARCH
+            Searches the k number of features more similar from the query set.
+            Distances are hamming,jaccard or levenshtein"""
+        # iterate through the query features
+        print('--- SEARCHING MOST SIMILAR --- ')
+        for qimg,((_,q1),(_,q2)) in enumerate(zip(self.query1.items(),self.query2.items())):
+            retrieve = []
+            for ft1,ft2 in zip(q1,q2):
+                distances = []
+                # iterate through the db features
+                for l,((_,d1),(_,d2)) in enumerate(zip(self.data1.items(),self.data2.items())):
+                    # compute distance
+                    for fd1,fd2 in zip(d1,d2):
+                        result1 = distance_metrics.chi2_distance(ft1,fd1)
+                        result2 = distance_metrics.chi2_distance(ft2,fd2)
+                        result = {'name':l,'dist':result1+result2}
+                        distances.append(result)
+                # make a list with all the distances from one query
+                less_dist = sorted(distances, key=lambda k: k['dist'])
+                # get the first limit images from the db for that query image
+                coincidences = [less_dist[k]['name'] for k in range(limit)]
+                retrieve.append(coincidences)
+            self.result.append(retrieve)
+            print('Image ['+str(qimg)+'] Processed.')
+            print('-------')
+        print('--- DONE --- ')
     
+    def clear_memory(self):
+        """METHOD::CLEAR_MEMORY:
+            >- Deletes the memory allocated that stores data to make it more efficient."""
+        self.result = []

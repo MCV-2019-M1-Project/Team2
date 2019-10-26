@@ -21,11 +21,24 @@ res_root = "../results"
 masks = "../results/QS1W3"
 tests_path = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\tests_folder"
 
+def get_text():
+	text = sorted(glob(dbt+os.sep+'*.txt'))
+	db_text = {}
+	for k,path in enumerate(text):
+		db_text[k] = []
+		with open(path,'r') as ff:
+			line = ff.readline()
+			if not line:
+				db_text[k].append([line])
+			else:
+				line = line.split(',')
+				db_text[k].append([line[0][2:-1]])
+	return db_text
 
 def main_qs1w3():
-
 	print("QSD1_W3")
 	print("Reading Images...")
+	db_text = get_text()
 	denoiser = Denoise(qs1_w3)
 	db_images = [[cv2.imread(item)] for item in sorted(glob(os.path.join(db,"*.jpg")))]
 	print("Denoising Images...")
@@ -61,31 +74,74 @@ def main_qs1w3():
 	print("Done.")
 
 	# -- DESCRIPTORS -- #
-	print('Obtaining descriptors.')
-	db_desc = TransformDescriptor(db_images,None,None,flag=False)
-	db_desc.compute_descriptors(transform_type='hog')
-	q1_desc = TransformDescriptor(qs_images,query_mask,None,flag=True)
-	q1_desc.compute_descriptors(transform_type='hog')
-
+	# -- COLOR -- #
+	print('computing color descriptors')
+	db_desc_col = SubBlockDescriptor(db_images,None)
+	db_desc_col.compute_descriptors()
+	qs_desc_col = SubBlockDescriptor(qs_images,query_mask)
+	qs_desc_col.compute_descriptors()
 	# -- SEARCH -- #
-	q1_searcher = Searcher(db_desc.result,q1_desc.result)
-	db_desc.clear_memory()
-	q1_desc.clear_memory()
-	q1_searcher.search(limit=3)
+	qs_searcher = Searcher(db_desc_col.result,qs_desc_col.result)
+	qs_searcher.search(limit=3)
 	print("Done.")
 
-	q1_eval = EvaluateDescriptors(q1_searcher.result,os.path.join(qs1_w3,'gt_corresps.pkl'))
-	q1_eval.compute_mapatk(limit=1)
-	print('DESC MAP1: ['+str(q1_eval.score)+']')
-	q1_eval.compute_mapatk(limit=3)
-	print('DESC MAP3: ['+str(q1_eval.score)+']')
-	print("Bbox masks IoU:",eval_iou.score)
+	print("Writing color desc...")
+	with open(os.path.join(res_root,"qs1_color_result.pkl"),'wb') as file:
+		pickle.dump(qs_searcher.result,file)
+	print("Done.")
 
+	# -- TRANSFORM -- #
+	print('Obtaining transform descriptors.')
+	db_desc_trans = TransformDescriptor(db_images,None,None)
+	db_desc_trans.compute_descriptors(transform_type='hog')
+	qs_desc_trans = TransformDescriptor(qs_images,query_mask,None)
+	qs_desc_trans.compute_descriptors(transform_type='hog')
+	# -- SEARCH -- #
+	qs_searcher = Searcher(db_desc_trans.result,qs_desc_trans.result)
+	qs_searcher.search(limit=3)
+	print("Done.")
+
+	print("Writing color desc...")
+	with open(os.path.join(res_root,"qs1_transform_result.pkl"),'wb') as file:
+		pickle.dump(qs_searcher.result,file)
+	print("Done.")
+
+	# -- COMBINED-- #
+	print('computing combined descriptors')
+	# -- SEARCH -- #
+	qs_searcher = SearcherCombined(db_desc_col.result,qs_desc_col.result,db_desc_trans.result,qs_desc_trans.result)
+	db_desc_col.clear_memory()
+	qs_desc_col.clear_memory()
+	db_desc_trans.clear_memory()
+	qs_desc_trans.clear_memory()
+	qs_searcher.search(limit=3)
+	print("Done.")
+
+	print("Writing combined desc...")
+	with open(os.path.join(res_root,"qs1_combined_result.pkl"),'wb') as file:
+		pickle.dump(qs_searcher.result,file)
+	print("Done.")
+
+	# -- TEXT -- #
+	print('computing text descriptors')
+	qs_desc_text = TextDescriptor(qs_images,query_bbox)
+	qs_desc_text.compute_descriptors()
+	# -- SEARCH -- #
+	qs_searcher = SearcherText(db_text,qs_desc_text.result)
+	qs_desc_text.clear_memory()
+	qs_searcher.search(limit=3)
+	print("Done.")
+
+	print("Writing text desc...")
+	with open(os.path.join(res_root,"qs1_text_result.pkl"),'wb') as file:
+		pickle.dump(qs_searcher.result,file)
+	print("Done.")
 
 def main_qs2w3():
 	# -- GET IMAGES -- #
 	print("Denoising Images...")
 	folder_path = qs2_w3
+	db_text = get_text()
 	denoiser = Denoise(folder_path)
 	denoiser.median_filter(3)
 	qs_images = denoiser.tv_bregman(weight=0.01,max_iter=1000,eps=0.001,isotropic=True)
@@ -181,36 +237,69 @@ def main_qs2w3():
 
 	print("Obtaining descriptors.")
 
-	 # -- DESCRIPTORS -- #
-	print("Computing descriptors for database images...")
-	# db_desc = SubBlockDescriptor(db_images,None,flag=False)
-	# db_desc.compute_descriptors(grid_blocks=[8,8],quantify=[32,8,8],color_space="hsv")
-	db_desc = TransformDescriptor(db_images,None,None,flag=False)
-	db_desc.compute_descriptors(transform_type="hog")
-	print("Done.")
-	print("Computing descriptors for query images...")
-	# qs_desc = SubBlockDescriptor(qs_images,None,flag=False)
-	# qs_desc.compute_descriptors(grid_blocks=[8,8],quantify=[32,8,8],color_space="hsv")
-	qs_desc = TransformDescriptor(img2paintings,img2paintings_final_mask,img2paintings_fg_bboxs,flag=True)
-	qs_desc.compute_descriptors(transform_type="hog")
-	print("Done.")
-
+	# -- DESCRIPTORS -- #
+	# -- COLOR -- #
+	print('computing color descriptors')
+	db_desc_col = SubBlockDescriptor(db_images,None)
+	db_desc_col.compute_descriptors()
+	qs_desc_col = SubBlockDescriptor(img2paintings,img2paintings_final_mask)
+	qs_desc_col.compute_descriptors()
 	# -- SEARCH -- #
-	print("Searching...")
-	qs_searcher = Searcher(db_desc.result,qs_desc.result)
-	# qs_searcher = SearcherMultiprocess(db_desc.result,qs_desc.result,num_cores=3)
-	db_desc.clear_memory()
-	qs_desc.clear_memory()
+	qs_searcher = Searcher(db_desc_col.result,qs_desc_col.result)
 	qs_searcher.search(limit=3)
 	print("Done.")
 
-	# -- EVALUATE -- #
-	qs_desc_eval = EvaluateDescriptors(qs_searcher.result,os.path.join(qs2_w3,'gt_corresps.pkl'))
-	qs_desc_eval.compute_mapatk(limit=1)
-	print('DESC MAP1: ['+str(qs_desc_eval.score)+']')
-	qs_desc_eval.compute_mapatk(limit=3)
-	print('DESC MAP3: ['+str(qs_desc_eval.score)+']')
-	print("Bbox masks IoU:",eval_iou.score)
+	print("Writing color desc...")
+	with open(os.path.join(res_root,"qs2_color_result.pkl"),'wb') as file:
+		pickle.dump(qs_searcher.result,file)
+	print("Done.")
+
+	# -- TRANSFORM -- #
+	print('Obtaining transform descriptors.')
+	db_desc_trans = TransformDescriptor(db_images,None,None)
+	db_desc_trans.compute_descriptors(transform_type='hog')
+	qs_desc_trans = TransformDescriptor(img2paintings,img2paintings_final_mask,img2paintings_fg_bboxs)
+	qs_desc_trans.compute_descriptors(transform_type='hog')
+	# -- SEARCH -- #
+	qs_searcher = Searcher(db_desc_trans.result,qs_desc_trans.result)
+	qs_searcher.search(limit=3)
+	print("Done.")
+
+	print("Writing color desc...")
+	with open(os.path.join(res_root,"qs2_transform_result.pkl"),'wb') as file:
+		pickle.dump(qs_searcher.result,file)
+	print("Done.")
+
+	# -- COMBINED-- #
+	print('computing combined descriptors')
+	# -- SEARCH -- #
+	qs_searcher = SearcherCombined(db_desc_col.result,qs_desc_col.result,db_desc_trans.result,qs_desc_trans.result)
+	db_desc_col.clear_memory()
+	qs_desc_col.clear_memory()
+	db_desc_trans.clear_memory()
+	qs_desc_trans.clear_memory()
+	qs_searcher.search(limit=3)
+	print("Done.")
+
+	print("Writing combined desc...")
+	with open(os.path.join(res_root,"qs2_combined_result.pkl"),'wb') as file:
+		pickle.dump(qs_searcher.result,file)
+	print("Done.")
+
+	# -- TEXT -- #
+	print('computing text descriptors')
+	qs_desc_text = TextDescriptor(img2paintings,img2paintings_fg_bboxs)
+	qs_desc_text.compute_descriptors()
+	# -- SEARCH -- #
+	qs_searcher = SearcherText(db_text,qs_desc_text.result)
+	qs_desc_text.clear_memory()
+	qs_searcher.search(limit=3)
+	print("Done.")
+
+	print("Writing text desc...")
+	with open(os.path.join(res_root,"qs2_text_result.pkl"),'wb') as file:
+		pickle.dump(qs_searcher.result,file)
+	print("Done.")
 
 if __name__ == "__main__":
 	# main_qs1w3()
