@@ -9,8 +9,8 @@ import os
 res_root = '../results'
 qs1_mask = '../results/QS1W2'
 qs2_mask = '../results/QS2W2'
-qs1_w2 = '../qsd1_w2'
-qs2_w2 = '../qsd2_w2'
+qs1_w2 = '../qst1_w2'
+qs2_w2 = '../qst2_w2'
 
 def evaluate():
 	# -- OPEN FILES -- #

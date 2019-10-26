@@ -12,8 +12,8 @@ import os
 
 # -- DIRECTORIES -- #
 db = '../database'
-qs1_w2 = '../qsd1_w2'
-qs2_w2 = '../qsd2_w2'
+qs1_w2 = '../qst1_w2'
+qs2_w2 = '../qst2_w2'
 res_root = '../results'
 
 
@@ -36,7 +36,7 @@ def main_qs2():
         for painting in img:
             mask, mean_points = BackgroundMask4(painting)
             img2paintings_mask[-1].append({"painting":painting,"mask":mask,"mean_points":mean_points})
-        #cv2.imwrite(res_root+os.sep+'QS2W2/{0:05d}.png'.format(ind),np.concatenate([item["mask"] for item in img2paintings_mask[-1]],axis=1))
+        cv2.imwrite(res_root+os.sep+'QS2W2/{0:05d}.png'.format(ind),np.concatenate([item["mask"] for item in img2paintings_mask[-1]],axis=1))
     print("Done.")
 
     print("Obtaining textbox masks for each painting...")
@@ -94,8 +94,8 @@ def main_qs2():
     print("Done.")
 
     print("Writing final masks...")
-    for ind,final_mask in enumerate(final_masks):
-        cv2.imwrite(res_root+os.sep+'QS2W2/{0:05d}.png'.format(ind),final_mask)
+    # for ind,final_mask in enumerate(final_masks):
+    #    cv2.imwrite(res_root+os.sep+'QS2W2/{0:05d}.png'.format(ind),final_mask)
     print("Done.")
 
     print('Obtaining descriptors.')
@@ -109,7 +109,7 @@ def main_qs2():
     q2_searcher = Searcher(db_desc.result,q2_desc.result)
     db_desc.clear_memory()
     q2_desc.clear_memory()
-    q2_searcher.search(limit=3)
+    q2_searcher.search(limit=10)
     print("Done.")
 
     # -- SAVE RESULTS -- #
@@ -163,7 +163,7 @@ def main_qs1():
     q1_searcher = Searcher(db_desc.result,q1_desc.result)
     db_desc.clear_memory()
     q1_desc.clear_memory()
-    q1_searcher.search(limit=3)
+    q1_searcher.search(limit=10)
     print("Done.")
 
     # -- SAVE RESULTS -- #

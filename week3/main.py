@@ -3,8 +3,8 @@ from glob import glob
 from paintings_count import getListOfPaintings
 from background_removal import BackgroundMask4
 from textbox_removal import TextBoxRemoval
-from descriptor import SubBlockDescriptor,TransformDescriptor
-from searcher import Searcher
+from descriptor import SubBlockDescriptor,TransformDescriptor, TextDescriptor
+from searcher import Searcher, SearcherCombined, SearcherText
 from evaluation import EvaluateDescriptors, EvaluateIoU
 from noise import Denoise
 import numpy as np
@@ -13,13 +13,15 @@ import cv2
 import os
 
 # -- DIRECTORIES -- #
-db = r"C:\Users\PC\Documents\Roger\Master\M1\Project\bbdd"
+db = "../database"
 dbt = "../bbdd_text"
-qs1_w3 = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\qsd1_w3"
-qs2_w3 = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\qsd2_w3"
+qs1_w3 = "../qsd1_w3"
+qs2_w3 = "../qsd2_w3"
 res_root = "../results"
 masks = "../results/QS1W3"
-tests_path = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\tests_folder"
+tests_path = "../tests_folder"
+qs1_corresps_path = qs1_w3 + "/gt_corresps.pkl"
+qs2_corresps_path = qs2_w3 + "/gt_corresps.pkl"
 
 def get_text():
 	text = sorted(glob(dbt+os.sep+'*.txt'))
@@ -35,7 +37,7 @@ def get_text():
 				db_text[k].append([line[0][2:-1]])
 	return db_text
 
-def main_qs1w3():
+def main_qs1w3(evaluate=False):
 	print("QSD1_W3")
 	print("Reading Images...")
 	db_text = get_text()
@@ -82,7 +84,13 @@ def main_qs1w3():
 	qs_desc_col.compute_descriptors()
 	# -- SEARCH -- #
 	qs_searcher = Searcher(db_desc_col.result,qs_desc_col.result)
-	qs_searcher.search(limit=3)
+	qs_searcher.search(limit=10)
+	if evaluate:
+		evaluator = EvaluateDescriptors(qs_searcher.result, qs1_corresps_path)
+		map_at_1 = evaluator.compute_mapatk(1)
+		map_at_5 = evaluator.compute_mapatk(5)
+		print("MAP@1 for color descriptors ", map_at_1)
+		print("MAP@5 for color descriptors ", map_at_5)
 	print("Done.")
 
 	print("Writing color desc...")
@@ -98,7 +106,13 @@ def main_qs1w3():
 	qs_desc_trans.compute_descriptors(transform_type='hog')
 	# -- SEARCH -- #
 	qs_searcher = Searcher(db_desc_trans.result,qs_desc_trans.result)
-	qs_searcher.search(limit=3)
+	qs_searcher.search(limit=10)
+	if evaluate:
+		evaluator = EvaluateDescriptors(qs_searcher.result, qs1_corresps_path)
+		map_at_1 = evaluator.compute_mapatk(1)
+		map_at_5 = evaluator.compute_mapatk(5)
+		print("MAP@1 for transform descriptors ", map_at_1)
+		print("MAP@5 for transform descriptors ", map_at_5)
 	print("Done.")
 
 	print("Writing color desc...")
@@ -114,7 +128,13 @@ def main_qs1w3():
 	qs_desc_col.clear_memory()
 	db_desc_trans.clear_memory()
 	qs_desc_trans.clear_memory()
-	qs_searcher.search(limit=3)
+	qs_searcher.search(limit=10)
+	if evaluate:
+		evaluator = EvaluateDescriptors(qs_searcher.result, qs1_corresps_path)
+		map_at_1 = evaluator.compute_mapatk(1)
+		map_at_5 = evaluator.compute_mapatk(5)
+		print("MAP@1 for combined descriptors ", map_at_1)
+		print("MAP@5 for combined descriptors ", map_at_5)
 	print("Done.")
 
 	print("Writing combined desc...")
@@ -129,7 +149,13 @@ def main_qs1w3():
 	# -- SEARCH -- #
 	qs_searcher = SearcherText(db_text,qs_desc_text.result)
 	qs_desc_text.clear_memory()
-	qs_searcher.search(limit=3)
+	qs_searcher.search(limit=10)
+	if evaluate:
+		evaluator = EvaluateDescriptors(qs_searcher.result, qs1_corresps_path)
+		map_at_1 = evaluator.compute_mapatk(1)
+		map_at_5 = evaluator.compute_mapatk(5)
+		print("MAP@1 for text descriptors ", map_at_1)
+		print("MAP@5 for text descriptors ", map_at_5)
 	print("Done.")
 
 	print("Writing text desc...")
@@ -137,7 +163,7 @@ def main_qs1w3():
 		pickle.dump(qs_searcher.result,file)
 	print("Done.")
 
-def main_qs2w3():
+def main_qs2w3(evaluate=False):
 	# -- GET IMAGES -- #
 	print("Denoising Images...")
 	folder_path = qs2_w3
@@ -246,7 +272,13 @@ def main_qs2w3():
 	qs_desc_col.compute_descriptors()
 	# -- SEARCH -- #
 	qs_searcher = Searcher(db_desc_col.result,qs_desc_col.result)
-	qs_searcher.search(limit=3)
+	qs_searcher.search(limit=10)
+	if evaluate:
+		evaluator = EvaluateDescriptors(qs_searcher.result, qs2_corresps_path)
+		map_at_1 = evaluator.compute_mapatk(1)
+		map_at_5 = evaluator.compute_mapatk(5)
+		print("MAP@1 for color descriptors ", map_at_1)
+		print("MAP@5 for color descriptors ", map_at_5)
 	print("Done.")
 
 	print("Writing color desc...")
@@ -262,7 +294,13 @@ def main_qs2w3():
 	qs_desc_trans.compute_descriptors(transform_type='hog')
 	# -- SEARCH -- #
 	qs_searcher = Searcher(db_desc_trans.result,qs_desc_trans.result)
-	qs_searcher.search(limit=3)
+	qs_searcher.search(limit=10)
+	if evaluate:
+		evaluator = EvaluateDescriptors(qs_searcher.result, qs2_corresps_path)
+		map_at_1 = evaluator.compute_mapatk(1)
+		map_at_5 = evaluator.compute_mapatk(5)
+		print("MAP@1 for transform descriptors ", map_at_1)
+		print("MAP@5 for transform descriptors ", map_at_5)
 	print("Done.")
 
 	print("Writing color desc...")
@@ -278,7 +316,13 @@ def main_qs2w3():
 	qs_desc_col.clear_memory()
 	db_desc_trans.clear_memory()
 	qs_desc_trans.clear_memory()
-	qs_searcher.search(limit=3)
+	qs_searcher.search(limit=10)
+	if evaluate:
+		evaluator = EvaluateDescriptors(qs_searcher.result, qs2_corresps_path)
+		map_at_1 = evaluator.compute_mapatk(1)
+		map_at_5 = evaluator.compute_mapatk(5)
+		print("MAP@1 for combined descriptors ", map_at_1)
+		print("MAP@5 for combined descriptors ", map_at_5)
 	print("Done.")
 
 	print("Writing combined desc...")
@@ -293,7 +337,13 @@ def main_qs2w3():
 	# -- SEARCH -- #
 	qs_searcher = SearcherText(db_text,qs_desc_text.result)
 	qs_desc_text.clear_memory()
-	qs_searcher.search(limit=3)
+	qs_searcher.search(limit=10)
+	if evaluate:
+		evaluator = EvaluateDescriptors(qs_searcher.result, qs2_corresps_path)
+		map_at_1 = evaluator.compute_mapatk(1)
+		map_at_5 = evaluator.compute_mapatk(5)
+		print("MAP@1 for text descriptors ", map_at_1)
+		print("MAP@5 for text descriptors ", map_at_5)
 	print("Done.")
 
 	print("Writing text desc...")
@@ -302,5 +352,5 @@ def main_qs2w3():
 	print("Done.")
 
 if __name__ == "__main__":
-	# main_qs1w3()
-	main_qs2w3()
+	main_qs1w3(True)
+	main_qs2w3(True)

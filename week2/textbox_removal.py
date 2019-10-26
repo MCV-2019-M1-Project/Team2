@@ -122,7 +122,7 @@ def TextBoxRemoval(img):
 
 
 def main():
-    for img_path in glob(os.path.join(r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week2\qsd1_w2","*.jpg"))[:]:
+    for img_path in glob(os.path.join("../qst1_w2","*.jpg"))[:]:
         print("\nUsing img_path",img_path)
         start = time.time()
         img = cv2.imread(img_path)
