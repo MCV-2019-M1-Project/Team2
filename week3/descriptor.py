@@ -240,7 +240,8 @@ class TextDescriptor():
 			bbox = [bbox['left'],bbox['top'],bbox['right'],bbox['bottom']]
 		features = []
 		cropped_text = img[bbox[1]: bbox[3], bbox[0]: bbox[2]]
-		features.append([pytesseract.image_to_string(pil.Image.fromarray(cropped_text))])
+		text = pytesseract.image_to_string(pil.Image.fromarray(cropped_text))
+		features.append([text])
 		return features
 
 	def clear_memory(self):

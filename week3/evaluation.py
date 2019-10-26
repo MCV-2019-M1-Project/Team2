@@ -17,12 +17,13 @@ class EvaluateDescriptors():
 		with open(gt_corr_path,'rb') as gt_corrs:
 			self.gt_corrs = pickle.load(gt_corrs)
 		self.score = 0
-	
+
 	def compute_mapatk(self,limit=1):
 		"""METHOD::COMPUTE_MAPATK:
 			>- Computes the MAPatk score for the results obtained."""
 		query = [item[0][0:limit] for item in self.query_res]
 		self.score = self.MAPatK(self.gt_corrs,query)
+		return self.score
 	
 	def MAPatK(self,x,y):
 		"""METHOD::MAPATK:

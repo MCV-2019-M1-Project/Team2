@@ -67,7 +67,8 @@ class SearcherText(Searcher):
                 # iterate through the db features
                 for dimg,dfeat in self.data.items():
                     # compute distance
-                    result = {'name':dimg,'dist':1-textdistance.jaccard.normalized_similarity(ft[0][0],dfeat[0][0])}
+                    dist = textdistance.levenshtein.normalized_similarity(ft[0][0], dfeat[0][0])
+                    result = {'name':dimg,'dist':1-dist}
                     distances.append(result)
                 # make a list with all the distances from one query
                 less_dist = sorted(distances, key=lambda k: k['dist'])
@@ -82,11 +83,14 @@ class SearcherText(Searcher):
 class SearcherCombined():
     """CLASS::SearcherText:
         >- Class to search the top K most similar images given the database and query features."""
-    def __init__(self,data_desc1,query_desc1,data_desc2,query_desc2):
+    def __init__(self,data_desc1,query_desc1,data_desc2,query_desc2, data_text, query_text, use_text=False):
         self.data1 = data_desc1
         self.data2 = data_desc2
         self.query1 = query_desc1
         self.query2 = query_desc2
+        self.query_text = query_text
+        self.data_text = data_text
+        self.use_text = use_text
         self.result = []
 
     def search(self,limit=3):
@@ -105,7 +109,13 @@ class SearcherCombined():
                     for fd1,fd2 in zip(d1,d2):
                         result1 = distance_metrics.chi2_distance(ft1,fd1)
                         result2 = distance_metrics.chi2_distance(ft2,fd2)
-                        result = {'name':l,'dist':result1+result2}
+                        extra_text_distance = 0
+                        if self.use_text:
+                            q_text = self.query_text[qimg]
+                            b_text = self.data_text[l][0]
+                            if not q_text.strip() or textdistance.levenshtein.normalized_similarity(q_text, b_text) < 0.85:
+                                extra_text_distance += 1000000
+                        result = {'name':l,'dist':result1+result2+extra_text_distance}
                         distances.append(result)
                 # make a list with all the distances from one query
                 less_dist = sorted(distances, key=lambda k: k['dist'])
