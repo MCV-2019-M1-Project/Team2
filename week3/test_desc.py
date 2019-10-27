@@ -45,13 +45,30 @@ def test_qs1():
 		qs1_mask = pickle.load(ff)
 	print('done')
 
+	# -- TRANSFORM -- #
+	print('computing combined descriptors')
+	db_desc_trans = TransformDescriptor(db_images,None,None)
+	db_desc_trans.compute_descriptors(transform_type='lbp')
+	qs_desc_trans = TransformDescriptor(qs1_images,qs1_mask,None)
+	qs_desc_trans.compute_descriptors(transform_type='lbp')
+	# -- SEARCH -- #
+	qs_searcher = Searcher(db_desc_trans.result,qs_desc_trans.result)
+	qs_searcher.search(limit=5)
+	print("Done.")
+	qs_eval = EvaluateDescriptors(qs_searcher.result,os.path.join(qs1_w3,'gt_corresps.pkl'))
+	qs_eval.compute_mapatk(limit=1)
+	print('DESC MAP1: ['+str(qs_eval.score)+']')
+	qs_eval.compute_mapatk(limit=5)
+	print('DESC MAP5: ['+str(qs_eval.score)+']')
+	print('done')
+
 	# -- TEXT -- #
 	print('computing text descriptors')
 	qs_desc = TextDescriptor(qs1_images,qs1_bbox)
 	qs_desc.compute_descriptors()
 	# -- SEARCH -- #
 	qs_searcher = SearcherText(db_text,qs_desc.result)
-	qs_searcher.search(limit=10)
+	qs_searcher.search(limit=5)
 	print("Done.")
 	qs_eval = EvaluateDescriptors(qs_searcher.result,os.path.join(qs1_w3,'gt_corresps.pkl'))
 	qs_eval.compute_mapatk(limit=1)
@@ -68,24 +85,7 @@ def test_qs1():
 	qs_desc_col.compute_descriptors()
 	# -- SEARCH -- #
 	qs_searcher = Searcher(db_desc_col.result,qs_desc_col.result)
-	qs_searcher.search(limit=10)
-	print("Done.")
-	qs_eval = EvaluateDescriptors(qs_searcher.result,os.path.join(qs1_w3,'gt_corresps.pkl'))
-	qs_eval.compute_mapatk(limit=1)
-	print('DESC MAP1: ['+str(qs_eval.score)+']')
-	qs_eval.compute_mapatk(limit=5)
-	print('DESC MAP5: ['+str(qs_eval.score)+']')
-	print('done')
-
-	# -- TRANSFORM -- #
-	print('computing combined descriptors')
-	db_desc_trans = TransformDescriptor(db_images,None,None)
-	db_desc_trans.compute_descriptors()
-	qs_desc_trans = TransformDescriptor(qs1_images,qs1_mask,None)
-	qs_desc_trans.compute_descriptors()
-	# -- SEARCH -- #
-	qs_searcher = Searcher(db_desc_trans.result,qs_desc_trans.result)
-	qs_searcher.search(limit=10)
+	qs_searcher.search(limit=5)
 	print("Done.")
 	qs_eval = EvaluateDescriptors(qs_searcher.result,os.path.join(qs1_w3,'gt_corresps.pkl'))
 	qs_eval.compute_mapatk(limit=1)
@@ -101,7 +101,7 @@ def test_qs1():
 	qs_desc_col.clear_memory()
 	db_desc_trans.clear_memory()
 	qs_desc_trans.clear_memory()
-	qs_searcher.search(limit=10)
+	qs_searcher.search(limit=5)
 	print("Done.")
 	qs_eval = EvaluateDescriptors(qs_searcher.result,os.path.join(qs1_w3,'gt_corresps.pkl'))
 	qs_eval.compute_mapatk(limit=1)
@@ -126,13 +126,30 @@ def test_qs2():
 		qs2_mask = pickle.load(ff)
 	print('done')
 
+	# -- TRANSFORM -- #
+	print('computing combined descriptors')
+	db_desc_trans = TransformDescriptor(db_images,None,None)
+	db_desc_trans.compute_descriptors(transform_type='lbp')
+	qs_desc_trans = TransformDescriptor(qs2_images,qs2_mask,None)
+	qs_desc_trans.compute_descriptors(transform_type='lbp')
+	# -- SEARCH -- #
+	qs_searcher = Searcher(db_desc_trans.result,qs_desc_trans.result)
+	qs_searcher.search(limit=5)
+	print("Done.")
+	qs_eval = EvaluateDescriptors(qs_searcher.result,os.path.join(qs2_w3,'gt_corresps.pkl'))
+	qs_eval.compute_mapatk(limit=1)
+	print('DESC MAP1: ['+str(qs_eval.score)+']')
+	qs_eval.compute_mapatk(limit=5)
+	print('DESC MAP5: ['+str(qs_eval.score)+']')
+	print('done')
+
 	# -- TEXT -- #
 	print('computing text descriptors')
 	qs_desc = TextDescriptor(qs2_images,qs2_bbox)
 	qs_desc.compute_descriptors()
 	# -- SEARCH -- #
 	qs_searcher = SearcherText(db_text,qs_desc.result)
-	qs_searcher.search(limit=10)
+	qs_searcher.search(limit=5)
 	print("Done.")
 	qs_eval = EvaluateDescriptors(qs_searcher.result,os.path.join(qs2_w3,'gt_corresps.pkl'))
 	qs_eval.compute_mapatk(limit=1)
@@ -149,24 +166,7 @@ def test_qs2():
 	qs_desc_col.compute_descriptors()
 	# -- SEARCH -- #
 	qs_searcher = Searcher(db_desc_col.result,qs_desc_col.result)
-	qs_searcher.search(limit=10)
-	print("Done.")
-	qs_eval = EvaluateDescriptors(qs_searcher.result,os.path.join(qs2_w3,'gt_corresps.pkl'))
-	qs_eval.compute_mapatk(limit=1)
-	print('DESC MAP1: ['+str(qs_eval.score)+']')
-	qs_eval.compute_mapatk(limit=5)
-	print('DESC MAP5: ['+str(qs_eval.score)+']')
-	print('done')
-
-	# -- TRANSFORM -- #
-	print('computing combined descriptors')
-	db_desc_trans = TransformDescriptor(db_images,None,None)
-	db_desc_trans.compute_descriptors()
-	qs_desc_trans = TransformDescriptor(qs2_images,qs2_mask,None)
-	qs_desc_trans.compute_descriptors()
-	# -- SEARCH -- #
-	qs_searcher = Searcher(db_desc_trans.result,qs_desc_trans.result)
-	qs_searcher.search(limit=10)
+	qs_searcher.search(limit=5)
 	print("Done.")
 	qs_eval = EvaluateDescriptors(qs_searcher.result,os.path.join(qs2_w3,'gt_corresps.pkl'))
 	qs_eval.compute_mapatk(limit=1)
@@ -183,13 +183,13 @@ def test_qs2():
 	qs_desc_col.clear_memory()
 	db_desc_trans.clear_memory()
 	qs_desc_trans.clear_memory()
-	qs_searcher.search(limit=10)
+	qs_searcher.search(limit=5)
 	print("Done.")
 	qs_eval = EvaluateDescriptors(qs_searcher.result,os.path.join(qs2_w3,'gt_corresps.pkl'))
 	qs_eval.compute_mapatk(limit=1)
 	print('DESC MAP1: ['+str(qs_eval.score)+']')
-	qs_eval.compute_mapatk(limit=3)
-	print('DESC MAP3: ['+str(qs_eval.score)+']')
+	qs_eval.compute_mapatk(limit=5)
+	print('DESC MAP5: ['+str(qs_eval.score)+']')
 	print('done')
 
 if __name__ == "__main__":
