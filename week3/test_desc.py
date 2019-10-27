@@ -51,14 +51,13 @@ def test_qs1():
 	qs_desc.compute_descriptors()
 	# -- SEARCH -- #
 	qs_searcher = SearcherText(db_text,qs_desc.result)
-	qs_desc.clear_memory()
-	qs_searcher.search(limit=3)
+	qs_searcher.search(limit=10)
 	print("Done.")
 	qs_eval = EvaluateDescriptors(qs_searcher.result,os.path.join(qs1_w3,'gt_corresps.pkl'))
 	qs_eval.compute_mapatk(limit=1)
 	print('DESC MAP1: ['+str(qs_eval.score)+']')
-	qs_eval.compute_mapatk(limit=3)
-	print('DESC MAP3: ['+str(qs_eval.score)+']')
+	qs_eval.compute_mapatk(limit=5)
+	print('DESC MAP5: ['+str(qs_eval.score)+']')
 	print('done')
 
 	# -- COLOR -- #
@@ -69,13 +68,13 @@ def test_qs1():
 	qs_desc_col.compute_descriptors()
 	# -- SEARCH -- #
 	qs_searcher = Searcher(db_desc_col.result,qs_desc_col.result)
-	qs_searcher.search(limit=3)
+	qs_searcher.search(limit=10)
 	print("Done.")
 	qs_eval = EvaluateDescriptors(qs_searcher.result,os.path.join(qs1_w3,'gt_corresps.pkl'))
 	qs_eval.compute_mapatk(limit=1)
 	print('DESC MAP1: ['+str(qs_eval.score)+']')
-	qs_eval.compute_mapatk(limit=3)
-	print('DESC MAP3: ['+str(qs_eval.score)+']')
+	qs_eval.compute_mapatk(limit=5)
+	print('DESC MAP5: ['+str(qs_eval.score)+']')
 	print('done')
 
 	# -- TRANSFORM -- #
@@ -86,28 +85,29 @@ def test_qs1():
 	qs_desc_trans.compute_descriptors()
 	# -- SEARCH -- #
 	qs_searcher = Searcher(db_desc_trans.result,qs_desc_trans.result)
-	qs_searcher.search(limit=3)
+	qs_searcher.search(limit=10)
 	print("Done.")
 	qs_eval = EvaluateDescriptors(qs_searcher.result,os.path.join(qs1_w3,'gt_corresps.pkl'))
 	qs_eval.compute_mapatk(limit=1)
 	print('DESC MAP1: ['+str(qs_eval.score)+']')
-	qs_eval.compute_mapatk(limit=3)
-	print('DESC MAP3: ['+str(qs_eval.score)+']')
+	qs_eval.compute_mapatk(limit=5)
+	print('DESC MAP5: ['+str(qs_eval.score)+']')
 	print('done')
 
 	# -- SEARCH -- #
-	qs_searcher = SearcherCombined(db_desc_col.result,qs_desc_col.result,db_desc_trans.result,qs_desc_trans.result)
+	qs_searcher = SearcherCombined(db_desc_col.result,qs_desc_col.result,db_desc_trans.result,
+									qs_desc_trans.result,db_text,qs_desc.result,use_text=True)
 	db_desc_col.clear_memory()
 	qs_desc_col.clear_memory()
 	db_desc_trans.clear_memory()
 	qs_desc_trans.clear_memory()
-	qs_searcher.search(limit=3)
+	qs_searcher.search(limit=10)
 	print("Done.")
 	qs_eval = EvaluateDescriptors(qs_searcher.result,os.path.join(qs1_w3,'gt_corresps.pkl'))
 	qs_eval.compute_mapatk(limit=1)
 	print('DESC MAP1: ['+str(qs_eval.score)+']')
-	qs_eval.compute_mapatk(limit=3)
-	print('DESC MAP3: ['+str(qs_eval.score)+']')
+	qs_eval.compute_mapatk(limit=5)
+	print('DESC MAP5: ['+str(qs_eval.score)+']')
 	print('done')
 
 def test_qs2():
@@ -132,14 +132,13 @@ def test_qs2():
 	qs_desc.compute_descriptors()
 	# -- SEARCH -- #
 	qs_searcher = SearcherText(db_text,qs_desc.result)
-	qs_desc.clear_memory()
-	qs_searcher.search(limit=3)
+	qs_searcher.search(limit=10)
 	print("Done.")
 	qs_eval = EvaluateDescriptors(qs_searcher.result,os.path.join(qs2_w3,'gt_corresps.pkl'))
 	qs_eval.compute_mapatk(limit=1)
 	print('DESC MAP1: ['+str(qs_eval.score)+']')
-	qs_eval.compute_mapatk(limit=3)
-	print('DESC MAP3: ['+str(qs_eval.score)+']')
+	qs_eval.compute_mapatk(limit=5)
+	print('DESC MAP5: ['+str(qs_eval.score)+']')
 	print('done')
 
 	# -- COLOR -- #
@@ -150,13 +149,13 @@ def test_qs2():
 	qs_desc_col.compute_descriptors()
 	# -- SEARCH -- #
 	qs_searcher = Searcher(db_desc_col.result,qs_desc_col.result)
-	qs_searcher.search(limit=3)
+	qs_searcher.search(limit=10)
 	print("Done.")
 	qs_eval = EvaluateDescriptors(qs_searcher.result,os.path.join(qs2_w3,'gt_corresps.pkl'))
 	qs_eval.compute_mapatk(limit=1)
 	print('DESC MAP1: ['+str(qs_eval.score)+']')
-	qs_eval.compute_mapatk(limit=3)
-	print('DESC MAP3: ['+str(qs_eval.score)+']')
+	qs_eval.compute_mapatk(limit=5)
+	print('DESC MAP5: ['+str(qs_eval.score)+']')
 	print('done')
 
 	# -- TRANSFORM -- #
@@ -167,22 +166,24 @@ def test_qs2():
 	qs_desc_trans.compute_descriptors()
 	# -- SEARCH -- #
 	qs_searcher = Searcher(db_desc_trans.result,qs_desc_trans.result)
-	qs_searcher.search(limit=3)
+	qs_searcher.search(limit=10)
 	print("Done.")
 	qs_eval = EvaluateDescriptors(qs_searcher.result,os.path.join(qs2_w3,'gt_corresps.pkl'))
 	qs_eval.compute_mapatk(limit=1)
 	print('DESC MAP1: ['+str(qs_eval.score)+']')
-	qs_eval.compute_mapatk(limit=3)
-	print('DESC MAP3: ['+str(qs_eval.score)+']')
+	qs_eval.compute_mapatk(limit=5)
+	print('DESC MAP5: ['+str(qs_eval.score)+']')
 	print('done')
 
 	# -- SEARCH -- #
-	qs_searcher = SearcherCombined(db_desc_col.result,qs_desc_col.result,db_desc_trans.result,qs_desc_trans.result)
+	qs_searcher = SearcherCombined(db_desc_col.result,qs_desc_col.result,db_desc_trans.result,
+									qs_desc_trans.result,db_text,qs_desc.result,use_text=True)
+	qs_desc.clear_memory()
 	db_desc_col.clear_memory()
 	qs_desc_col.clear_memory()
 	db_desc_trans.clear_memory()
 	qs_desc_trans.clear_memory()
-	qs_searcher.search(limit=3)
+	qs_searcher.search(limit=10)
 	print("Done.")
 	qs_eval = EvaluateDescriptors(qs_searcher.result,os.path.join(qs2_w3,'gt_corresps.pkl'))
 	qs_eval.compute_mapatk(limit=1)

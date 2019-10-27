@@ -67,7 +67,7 @@ class SearcherText(Searcher):
                 # iterate through the db features
                 for dimg,dfeat in self.data.items():
                     # compute distance
-                    dist = textdistance.levenshtein.normalized_similarity(ft[0][0], dfeat[0][0])
+                    dist = textdistance.jaccard.normalized_similarity(ft[0][0], dfeat[0][0])
                     result = {'name':dimg,'dist':1-dist}
                     distances.append(result)
                 # make a list with all the distances from one query
@@ -113,7 +113,7 @@ class SearcherCombined():
                         if self.use_text:
                             q_text = self.query_text[qimg][0][0][0]
                             b_text = self.data_text[l][0][0]
-                            if not q_text.strip() or textdistance.levenshtein.normalized_similarity(q_text, b_text) < 0.85:
+                            if not q_text.strip() or textdistance.jaccard.normalized_similarity(q_text, b_text) < 0.85:
                                 extra_text_distance = 1000000
                         result = {'name':l,'dist':result1+result2+extra_text_distance}
                         distances.append(result)

@@ -65,9 +65,10 @@ def main_qs1w3(evaluate=False):
 	print("Done.")
 	# input("Stop execution...")
 
-	eval_iou = EvaluateIoU(query_bbox,os.path.join(qs1_w3,"text_boxes.pkl"))
-	eval_iou.compute_iou()
-	print("Bbox masks IoU:",eval_iou.score)
+	if evaluate:
+		eval_iou = EvaluateIoU(query_bbox,os.path.join(qs1_w3,"text_boxes.pkl"))
+		eval_iou.compute_iou()
+		print("Bbox masks IoU:",eval_iou.score)
 
 	# -- SAVE BBOXES -- #
 	print("Writing final bboxs...")
@@ -115,7 +116,7 @@ def main_qs1w3(evaluate=False):
 		print("MAP@5 for transform descriptors ", map_at_5)
 	print("Done.")
 
-	print("Writing color desc...")
+	print("Writing transform desc...")
 	with open(os.path.join(res_root,"qs1_transform_result.pkl"),'wb') as file:
 		pickle.dump(qs_searcher.result,file)
 	print("Done.")
@@ -144,7 +145,7 @@ def main_qs1w3(evaluate=False):
 	# -- COMBINED-- #
 	print('computing combined descriptors without text')
 	# -- SEARCH -- #
-	qs_searcher = SearcherCombined(db_desc_col.result,qs_desc_col.result,db_desc_trans.result,qs_desc_trans.result, db_text, qs_desc_text.result)
+	qs_searcher = SearcherCombined(db_desc_col.result,qs_desc_col.result,db_desc_trans.result,qs_desc_trans.result)
 	db_desc_col.clear_memory()
 	qs_desc_col.clear_memory()
 	db_desc_trans.clear_memory()
@@ -270,9 +271,10 @@ def main_qs2w3(evaluate=False):
 		final_bboxs.append(bboxs)
 	print("Done.")
 
-	eval_iou = EvaluateIoU(final_bboxs,os.path.join(qs2_w3,"text_boxes.pkl"))
-	eval_iou.compute_iou()
-	print("Bbox masks IoU:",eval_iou.score)
+	if evaluate:
+		eval_iou = EvaluateIoU(final_bboxs,os.path.join(qs2_w3,"text_boxes.pkl"))
+		eval_iou.compute_iou()
+		print("Bbox masks IoU:",eval_iou.score)
 
 	print("Writing final bboxs...")
 	with open(os.path.join(res_root,"qs2_bbox.pkl"),"wb") as f:
