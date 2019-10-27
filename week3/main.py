@@ -13,12 +13,11 @@ import cv2
 import os
 
 # -- DIRECTORIES -- #
-db = "../database"
+db = "../bbdd"
 dbt = "../bbdd_text"
 qs1_w3 = "../qsd1_w3"
 qs2_w3 = "../qsd2_w3"
 res_root = "../results"
-masks = "../results/QS1W3"
 tests_path = "../tests_folder"
 qs1_corresps_path = qs1_w3 + "/gt_corresps.pkl"
 qs2_corresps_path = qs2_w3 + "/gt_corresps.pkl"
@@ -211,6 +210,7 @@ def main_qs2w3(evaluate=False):
 		for painting in img:
 			mask, mean_points = BackgroundMask4(painting)
 			img2paintings_mask[-1].append({"painting":painting,"mask":mask,"mean_points":mean_points})
+			"""UNCOMMENT LINE TO PRODUCE THE MASK TO UPLOAD TO THE SERVER"""
 		#cv2.imwrite(os.path.join(res_root,"QS2W3","{0:05d}.png".format(ind)),np.concatenate([item["mask"] for item in img2paintings_mask[-1]],axis=1))
 	print("Done.")
 
