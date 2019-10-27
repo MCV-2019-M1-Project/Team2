@@ -15,8 +15,8 @@ import os
 # -- DIRECTORIES -- #
 db = "../bbdd"
 dbt = "../bbdd_text"
-qs1_w3 = "../qsd1_w3"
-qs2_w3 = "../qsd2_w3"
+qs1_w3 = "../qst1_w3"
+qs2_w3 = "../qst2_w3"
 res_root = "../results"
 tests_path = "../tests_folder"
 qs1_corresps_path = qs1_w3 + "/gt_corresps.pkl"
@@ -144,7 +144,7 @@ def main_qs1w3(evaluate=False):
 	# -- COMBINED-- #
 	print('computing combined descriptors without text')
 	# -- SEARCH -- #
-	qs_searcher = SearcherCombined(db_desc_col.result,qs_desc_col.result,db_desc_trans.result,qs_desc_trans.result)
+	qs_searcher = SearcherCombined(db_desc_col.result,qs_desc_col.result,db_desc_trans.result,qs_desc_trans.result, db_text, qs_desc_text.result, False)
 	db_desc_col.clear_memory()
 	qs_desc_col.clear_memory()
 	db_desc_trans.clear_memory()
@@ -357,7 +357,7 @@ def main_qs2w3(evaluate=False):
 	# -- COMBINED-- #
 	print('computing combined descriptors without text')
 	# -- SEARCH -- #
-	qs_searcher = SearcherCombined(db_desc_col.result,qs_desc_col.result,db_desc_trans.result,qs_desc_trans.result, db_text, qs_desc_text.result)
+	qs_searcher = SearcherCombined(db_desc_col.result,qs_desc_col.result,db_desc_trans.result,qs_desc_trans.result, db_text, qs_desc_text.result, False)
 	db_desc_col.clear_memory()
 	qs_desc_col.clear_memory()
 	db_desc_trans.clear_memory()
@@ -401,8 +401,8 @@ def main_qs2w3(evaluate=False):
 	print("Done.")
 
 if __name__ == "__main__":
-	#main_qs1w3(True)
-	main_qs2w3(True)
+	main_qs1w3(False)
+	main_qs2w3(False)
 
 '''
 QS1 Results
