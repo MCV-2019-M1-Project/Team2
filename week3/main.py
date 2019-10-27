@@ -377,6 +377,8 @@ def main_qs2w3(evaluate=False):
 	# -- COMBINED-- #
 	print('computing combined descriptors with text')
 	# -- SEARCH -- #
+	print(db_text)
+	print(qs_desc_text.result)
 	qs_searcher = SearcherCombined(db_desc_col.result,qs_desc_col.result,db_desc_trans.result,qs_desc_trans.result, db_text, qs_desc_text.result, True)
 	db_desc_col.clear_memory()
 	qs_desc_col.clear_memory()
@@ -397,5 +399,21 @@ def main_qs2w3(evaluate=False):
 	print("Done.")
 
 if __name__ == "__main__":
-	main_qs1w3(True)
+	#main_qs1w3(True)
 	main_qs2w3(True)
+
+'''
+QS1 Results
+Color descriptors => MAP@1 = 0.63333 MAP@5 = 0.70944
+Transform descriptors => MAP@1 = 0.9 MAP@5 = 0.925
+Text descriptors => MAP@1 = 0.366 MAP@5 = 0.4911
+Combined without text  => MAP@1 = 0.9 MAP@5 = 0.925
+Combined with text  => MAP@1 = 0.933333 MAP@5 = 0.95
+
+QS2 Results
+Color descriptors => MAP@1 = 0.533333 MAP@5 = 0.565
+Transform descriptors => MAP@1 = 0.616 MAP@5 = 0.629
+Text descriptors => MAP@1 = 0.133 MAP@5 = 0.2038
+Combined without text  => MAP@1 = 0.616 MAP@5 = 0.629
+Combined with text  => MAP@1 = 0.716 MAP@5 = 0.729
+'''
