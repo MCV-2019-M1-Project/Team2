@@ -149,23 +149,6 @@ def main_qs1w3(evaluate=False):
 		pickle.dump(qs_searcher.result,file)
 	print("Done.")
 
-	# -- COMBINED-- #
-	print('computing combined descriptors without text')
-	# -- SEARCH -- #
-	qs_searcher = SearcherCombined(db_desc_col.result,qs_desc_col.result,db_desc_trans.result,qs_desc_trans.result)
-	db_desc_col.clear_memory()
-	qs_desc_col.clear_memory()
-	db_desc_trans.clear_memory()
-	qs_desc_trans.clear_memory()
-	qs_searcher.search(limit=10)
-	if evaluate:
-		evaluator = EvaluateDescriptors(qs_searcher.result, qs1_corresps_path)
-		map_at_1 = evaluator.compute_mapatk(1)
-		map_at_5 = evaluator.compute_mapatk(5)
-		print("MAP@1 for combined descriptors without text ", map_at_1)
-		print("MAP@5 for combined descriptors without text ", map_at_5)
-	print("Done.")
-
 	print("Writing combined desc...")
 	with open(os.path.join(res_root,"qs1_combined_without_text_result.pkl"),'wb') as file:
 		pickle.dump(qs_searcher.result,file)
@@ -361,23 +344,6 @@ def main_qs2w3(evaluate=False):
 	print("Writing text desc...")
 	with open(os.path.join(res_root,"qs2_text_result.pkl"),'wb') as file:
 		pickle.dump(qs_searcher.result,file)
-	print("Done.")
-
-	# -- COMBINED-- #
-	print('computing combined descriptors without text')
-	# -- SEARCH -- #
-	qs_searcher = SearcherCombined(db_desc_col.result,qs_desc_col.result,db_desc_trans.result,qs_desc_trans.result, db_text, qs_desc_text.result)
-	db_desc_col.clear_memory()
-	qs_desc_col.clear_memory()
-	db_desc_trans.clear_memory()
-	qs_desc_trans.clear_memory()
-	qs_searcher.search(limit=10)
-	if evaluate:
-		evaluator = EvaluateDescriptors(qs_searcher.result, qs2_corresps_path)
-		map_at_1 = evaluator.compute_mapatk(1)
-		map_at_5 = evaluator.compute_mapatk(5)
-		print("MAP@1 for combined descriptors without text ", map_at_1)
-		print("MAP@5 for combined descriptors without text ", map_at_5)
 	print("Done.")
 
 	print("Writing combined desc...")
