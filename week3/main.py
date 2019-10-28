@@ -26,7 +26,7 @@ def save_text(result,option):
 	for qimg,qfeat in result.items():
         for ft in qfeat:
 			root = 'TEXT1' if option == 'qs1' else 'TEXT2'
-			with open(res_root+os.sep+root+os.sep+'{0:05d}.png'.format(qimg),w) as ff:
+			with open(res_root+os.sep+root+os.sep+'{0:05d}.txt'.format(qimg),w) as ff:
 				ff.writelines(ft[0][0])
 
 def get_text():
