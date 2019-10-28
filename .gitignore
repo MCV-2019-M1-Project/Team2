@@ -12,6 +12,8 @@ qsd1_w2/
 qsd1_w3/
 qsd2_w3/
 results/
+qst1_w3/
+qst2_w3
 
 # Virtual Envs
 .env/

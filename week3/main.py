@@ -22,6 +22,13 @@ tests_path = "../tests_folder"
 qs1_corresps_path = qs1_w3 + "/gt_corresps.pkl"
 qs2_corresps_path = qs2_w3 + "/gt_corresps.pkl"
 
+def save_text(result,option):
+	for qimg,qfeat in result.items():
+        for ft in qfeat:
+			root = 'TEXT1' if option == 'qs1' else 'TEXT2'
+			with open(res_root+os.sep+root+os.sep+'{0:05d}.txt'.format(qimg),w) as ff:
+				ff.writelines(ft[0][0])
+
 def get_text():
 	text = sorted(glob(dbt+os.sep+'*.txt'))
 	db_text = {}
@@ -124,6 +131,7 @@ def main_qs1w3(evaluate=False):
 	print('computing text descriptors')
 	qs_desc_text = TextDescriptor(qs_images,query_bbox)
 	qs_desc_text.compute_descriptors()
+	save_text(qs_desc_text.result,'qs1')
 	# -- SEARCH -- #
 	qs_searcher = SearcherText(db_text,qs_desc_text.result)
 	qs_desc_text.clear_memory()
@@ -211,7 +219,7 @@ def main_qs2w3(evaluate=False):
 			mask, mean_points = BackgroundMask4(painting)
 			img2paintings_mask[-1].append({"painting":painting,"mask":mask,"mean_points":mean_points})
 			"""UNCOMMENT LINE TO PRODUCE THE MASK TO UPLOAD TO THE SERVER"""
-		#cv2.imwrite(os.path.join(res_root,"QS2W3","{0:05d}.png".format(ind)),np.concatenate([item["mask"] for item in img2paintings_mask[-1]],axis=1))
+		cv2.imwrite(os.path.join(res_root,"QS2W3","{0:05d}.png".format(ind)),np.concatenate([item["mask"] for item in img2paintings_mask[-1]],axis=1))
 	print("Done.")
 
 	print("Obtaining textbox masks for each painting...")
@@ -337,6 +345,7 @@ def main_qs2w3(evaluate=False):
 	print('computing text descriptors')
 	qs_desc_text = TextDescriptor(img2paintings,img2paintings_fg_bboxs)
 	qs_desc_text.compute_descriptors()
+	save_text(qs_desc_text.result,'qs2')
 	# -- SEARCH -- #
 	qs_searcher = SearcherText(db_text,qs_desc_text.result)
 	qs_desc_text.clear_memory()
