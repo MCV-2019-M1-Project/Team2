@@ -17,6 +17,7 @@ class HarrisDescriptor:
            for i, paint in enumerate(images):
                self.result[k].append(self._compute_features(paint, None, None)) # self.mask_list[k][i], self.bbox_list[k][i]))
         print('--- DONE --- ')
+        return self.result
 
     def _compute_features(self, img, mask, bbox):
         # apply mask and bbox
@@ -38,13 +39,27 @@ class HarrisDescriptor:
                     keypoints.append(cv2.KeyPoint(j, i, _size=3))
 
         sift = cv2.xfeatures2d.SIFT_create()
-        key_descriptors = [sift.compute(gray, [kp])[1] for kp in keypoints]
-        return key_descriptors
+        keydescriptors = [sift.compute(gray, [kp])[1] for kp in keypoints]
+        return keypoints, keydescriptors
 
 
 if __name__ == '__main__':
-    folder = "../qsd1_w3"
-    images = [[cv2.imread(item)] for item in sorted(glob(os.path.join(folder, "*.jpg")))]
+    query_folder = "../test"
+    query_images = [[cv2.imread(item)] for item in sorted(glob(os.path.join(query_folder, "*.jpg")))]
+    query_descriptors = HarrisDescriptor(query_images, None, None)
+    query_results = query_descriptors.compute_descriptors()
+    print(len(query_results))
+    print(type(query_results[0][0][1]))
 
-    descriptor = HarrisDescriptor(images, None, None)
-    print(descriptor.compute_descriptors())
+    bbdd_folder = "../bbdd_test"
+    bbdd_images = [[cv2.imread(item)] for item in sorted(glob(os.path.join(bbdd_folder, "*.jpg")))]
+    bbdd_descriptor = HarrisDescriptor(bbdd_images, None, None)
+    bbdd_results = bbdd_descriptor.compute_descriptors()
+    print(len(bbdd_results))
+    print(type(bbdd_results[0][0][1]))
+
+    matcher = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+
+    matches1 = matcher.match(np.asarray(query_results[0][0][1]), np.asarray(bbdd_results[0][0][1]))
+
+    print(matches1)
