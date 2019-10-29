@@ -30,36 +30,36 @@ class HarrisDescriptor:
         # Detecting corners
         dst = cv2.cornerHarris(gray, blockSize, apertureSize, k)
         # Normalizing
-        dst_norm = np.empty(dst.shape, dtype=np.float32)
-        cv2.normalize(dst, dst_norm, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
+        dst_norm = cv2.normalize(dst, dst, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
         keypoints = []
         for i in range(dst_norm.shape[0]):
             for j in range(dst_norm.shape[1]):
                 if int(dst_norm[i, j]) > thresh:
                     keypoints.append(cv2.KeyPoint(j, i, _size=3))
-
         sift = cv2.xfeatures2d.SIFT_create()
         keydescriptors = [sift.compute(gray, [kp])[1] for kp in keypoints]
         return keypoints, keydescriptors
 
 
 if __name__ == '__main__':
-    query_folder = "../test"
+    query_folder = "../qsd1_w4"
     query_images = [[cv2.imread(item)] for item in sorted(glob(os.path.join(query_folder, "*.jpg")))]
     query_descriptors = HarrisDescriptor(query_images, None, None)
     query_results = query_descriptors.compute_descriptors()
     print(len(query_results))
     print(type(query_results[0][0][1]))
 
-    bbdd_folder = "../bbdd_test"
+    bbdd_folder = "../bbdd"
     bbdd_images = [[cv2.imread(item)] for item in sorted(glob(os.path.join(bbdd_folder, "*.jpg")))]
     bbdd_descriptor = HarrisDescriptor(bbdd_images, None, None)
     bbdd_results = bbdd_descriptor.compute_descriptors()
     print(len(bbdd_results))
     print(type(bbdd_results[0][0][1]))
 
-    matcher = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+    matcher = cv2.BFMatcher(cv2.NORM_L2, crossCheck=True)
 
     matches1 = matcher.match(np.asarray(query_results[0][0][1]), np.asarray(bbdd_results[0][0][1]))
+    print(type(matches1))
+    matches1 = sorted(matches1, key = lambda x:x.distance)
 
     print(matches1)
