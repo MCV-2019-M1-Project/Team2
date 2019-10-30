@@ -315,3 +315,14 @@ if __name__ == "__main__":
     # main_qs2w3(False)
 
     main_qs1w4()
+
+    ''' Week3 code run for qsd1_w4 gives the results:
+    MAP@1 for color descriptors  0.36666666666666664
+    MAP@5 for color descriptors  0.38333333333333336
+    MAP@1 for transform descriptors  0.25
+    MAP@5 for transform descriptors  0.2788888888888889
+    MAP@1 for text descriptors with levenshtein  0.25
+    MAP@5 for text descriptors with levenshtein 0.3111111111111111
+    MAP@1 for combined descriptors without text  0.25
+    MAP@5 for combined descriptors without text  0.3022222222222222
+    '''
