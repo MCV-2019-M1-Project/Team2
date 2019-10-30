@@ -420,12 +420,14 @@ def main_qs1w4():
     # query_folder = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week4\qsd1_w4"
     query_folder = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week4\qsd1_w1"
     query_images = [[cv2.imread(item)] for item in sorted(glob(os.path.join(query_folder, "*.jpg"))[:])]
+    query_images = [[cv2.resize(item[0],(1000,1000))] for item in query_images]
     print("Done. Time: "+str(time.time()-start))
 
     print("\nLoading bbdd images...")
     start = time.time()
     bbdd_folder = r"C:\Users\PC\Documents\Roger\Master\M1\Project\bbdd"
     bbdd_images = [[cv2.imread(item)] for item in sorted(glob(os.path.join(bbdd_folder, "*.jpg"))[:])]
+    bbdd_images = [[cv2.resize(item[0],(1000,1000))] for item in bbdd_images]
     print("Done. Time: "+str(time.time()-start))
 
     ## COMPUTING DESCRIPTORS
@@ -458,13 +460,13 @@ def main_qs1w4():
             for bbdd_key,bbdd_img in bbdd_results.items():
                 # print("\t\tbbdd_key:",bbdd_key,end=" ")
                 if paint_res[1] is None or bbdd_img[0][1] is None:
-                    matches[img_key][paint_ind].append([])
+                    matches[img_key][paint_ind].append(0)
                 else:
                     m = matcher.match(paint_res[1], bbdd_img[0][1])
                     m = sorted(m, key=lambda x:x.distance)
                     m_keys = [item.distance for item in m]
                     m = m[:bisect.bisect_right(m_keys,threshold_distance)]
-                    matches[img_key][paint_ind].append(m)
+                    matches[img_key][paint_ind].append(len(m))
     print("Done. Time: "+str(time.time()-start))
 
     ## FINDING BEST MATCH FOR EACH PAINTING
@@ -476,11 +478,10 @@ def main_qs1w4():
     for img_key,img_res in matches.items():
         results.append([])
         for paint_ind,paint_res in enumerate(img_res):
-            mch = matches[img_key][paint_ind]
-            m = [len(item) for item in mch]
+            m = matches[img_key][paint_ind]
             maxs = max(m)
             if maxs >= threshold_min_matches:
-                best = [[ind,mch[ind][0].distance if item > 0  else None] for ind,item in sorted(enumerate(m),reverse=True,key=lambda x:x[1])][:max_best]
+                best = [ind for ind,item in sorted(enumerate(m),reverse=True,key=lambda x:x[1])][:max_best]
             else:
                 best = [-1]
             results[-1].append(best)
@@ -489,7 +490,6 @@ def main_qs1w4():
     for ind,val in enumerate(results):
         print(ind,val)
 
-    input('...')
     ## EVALUATING RESULTS
     print("\nEvaluating results...")
     start = time.time()
