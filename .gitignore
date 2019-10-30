@@ -11,9 +11,12 @@ qsd2_w2/
 qsd1_w2/
 qsd1_w3/
 qsd2_w3/
-results/
+qsd1_w4/
+
+# TEST
 qst1_w3/
-qst2_w3
+qst2_w3/
+results/
 
 # Virtual Envs
 .env/

@@ -3,67 +3,61 @@ import numpy as np
 from glob import glob
 import os
 
-
-class HarrisDescriptor:
+class BaseDescriptor():
+    """CLASS::BaseDescriptor:
+        >- Class from which all corner descriptors form. """
     def __init__(self, img_list, mask_list, bbox_list):
         self.img_list = img_list
         self.mask_list = mask_list
         self.bbox_list = bbox_list
         self.result = {}
-
+    
     def compute_descriptors(self):
-        for k, images in enumerate(self.img_list):
-           # print(str(k)+' out of '+str(len(self.img_list)))
-           self.result[k] = []
-           for i, paint in enumerate(images):
-               self.result[k].append(self._compute_features(paint, None, None)) # self.mask_list[k][i], self.bbox_list[k][i]))
+        print('--- COMPUTING DESCRIPTORS --- ')
+        for k, img in enumerate(self.img_list):
+            self.result[k] = []
+            print(str(k)+' out of '+str(len(self.img_list)))
+            for i, paint in enumerate(img):
+                pimg = self._apply_masks(paint, self.mask_list[k][i], self.bbox_list[k][i])
+                self.result[k].append(self._compute_features(pimg))
         print('--- DONE --- ')
         return self.result
+    def _apply_masks(self,paint,mask,bbox):
+        """ IN THE CASE OF QS1_W4 ALL IMAGES HAVE BBOX AND MASK
+            The mask should be the one that only counts the elimination of the background. """
+        mask[bbox["top"]:bbox["bottom"],bbox["left"]:bbox["right"]] = 0
+        return cv2.bitwise_and(paint,paint,mask=mask)
+        
+    def _compute_features(self,img,mask,bbox):
+        """ SHOULD RETURN ONLY THE DESCRIPTORS, KEYPOINTS ARE JUST USEFUL TO COMPUTE THE DESCRIPTORS. """
+        raise NotImplementedError('This is a base class, this will never be implemented.')
 
-    def _compute_features(self, img, mask, bbox):
-        # apply mask and bbox
+class HarrisDescriptor(BaseDescriptor):
+    def __init__(self, img_list, mask_list, bbox_list):
+        super().__init__(img_list,mask_list,bbox_list)
+
+    def _compute_features(self, img):
         thresh = 200
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        # Detector parameters
-        blockSize = 2
-        apertureSize = 3
-        k = 0.04
-        # Detecting corners
+        blockSize = 2; apertureSize = 3; k = 0.04
         dst = cv2.cornerHarris(gray, blockSize, apertureSize, k)
-        # Normalizing
         dst_norm = cv2.normalize(dst, dst, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
         keypoints = []
-        print("1")
         for i in range(dst_norm.shape[0]):
             for j in range(dst_norm.shape[1]):
                 if int(dst_norm[i, j]) > thresh:
                     keypoints.append(cv2.KeyPoint(j, i, _size=3))
-        print("2")
         sift = cv2.xfeatures2d.SIFT_create()
-        print("3")
         keydescriptors = [sift.compute(gray, [kp])[1] for kp in keypoints]
-        print("4")
-        return np.array(keypoints), np.array(keydescriptors)
+        return np.array(keydescriptors)
 
-
-class ORBDescriptor:
+class ORBDescriptor(BaseDescriptor):
     def __init__(self, img_list, mask_list, bbox_list):
-        self.img_list = img_list
-        self.mask_list = mask_list
-        self.bbox_list = bbox_list
-        self.result = {}
-
-    def compute_descriptors(self):
-        for k, images in enumerate(self.img_list):
-           # print(str(k)+' out of '+str(len(self.img_list)))
-           self.result[k] = []
-           for i, paint in enumerate(images):
-               self.result[k].append(self._compute_features(paint, None, None)) # self.mask_list[k][i], self.bbox_list[k][i]))
-        return self.result
-
-    def _compute_features(self, img, mask, bbox):
+        super().__init__(img_list,mask_list,bbox_list)
+        
+    def _compute_features(self, img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         orb = cv2.ORB_create()
         kp, des = orb.detectAndCompute(gray,None)
-        return kp, des
+        return des
 
