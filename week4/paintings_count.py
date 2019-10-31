@@ -44,7 +44,7 @@ def computeEdgesToCountPaintings(img):
 
     # Obtain gray level image
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-    cv2.imwrite(r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\tests_folder\testpaintcount.png",gray)
+    #cv2.imwrite(r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\tests_folder\testpaintcount.png",gray)
 
     # Obtain edges through Canny algorithm
     edges = cv2.Canny(gray,50,150,apertureSize=3)

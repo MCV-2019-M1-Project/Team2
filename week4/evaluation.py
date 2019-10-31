@@ -23,7 +23,6 @@ class EvaluateDescriptors():
 			>- Computes the MAPatk score for the results obtained."""
 		query = [item[0][0:limit] for item in self.query_res]
 		self.score = self.MAPatK(self.gt_corrs,query)
-		return self.score
 	
 	def MAPatK(self,x,y):
 		"""METHOD::MAPATK:

@@ -30,8 +30,8 @@ def TextBoxRemoval(img):
     bright = np.abs(np.max(bright,axis=2)-np.min(bright,axis=2))
     bright = cv2.morphologyEx(bright, cv2.MORPH_OPEN, np.ones((5,5),np.uint8))
 
-    cv2.imwrite(r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\tests_folder\testdark.png",dark)
-    cv2.imwrite(r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\tests_folder\testbright.png",bright)
+    #cv2.imwrite(r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\tests_folder\testdark.png",dark)
+    #cv2.imwrite(r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week3\tests_folder\testbright.png",bright)
 
     # Search for largest uniform rectangle on both opening and closing
     rectangles = {"bright": None, "dark": None}
@@ -144,12 +144,12 @@ def TextBoxRemoval(img):
         means_dark = (np.abs(mean_0_dark-mean_1_dark)+np.abs(mean_0_dark-mean_2_dark)+np.abs(mean_2_dark-mean_1_dark))/3
 
         if bright_rect.shape[0]*bright_rect.shape[1] < dark_rect.shape[0]*dark_rect.shape[1]:
-            print("decision dark")
+            #print("decision dark")
             last_row_ind = rectangles["dark"][0]
             row_length = rectangles["dark"][1]
             last_col_width = rectangles["dark"][2]
         else:
-            print("decision bright")
+            #print("decision bright")
             last_row_ind = rectangles["bright"][0]
             row_length = rectangles["bright"][1]
             last_col_width = rectangles["bright"][2]
