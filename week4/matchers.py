@@ -43,10 +43,10 @@ class Matcher:
             for paint_ind, paint_res in enumerate(img_res):
                 matches = []
                 for data_key,data_img in self.data.items():
-                    if paint_res[1] is None or bbdd_img[0][1] is None:
+                    if paint_res[1] is None or data_img[0][1] is None:
                         matches.append({'name':data_key,'num':0})
                     else:
-                        m = self.matcher.match(paint_res[1], bbdd_img[0][1])
+                        m = self.matcher.match(paint_res[1], data_img[0][1])
                         m_sorted = sorted([item.distance for item in m])
                         num_matches = len(m[:bisect.bisect_right(m_sorted,threshold_distance)])
                         matches.append({'name':data_key,'num':num_matches})
@@ -76,4 +76,33 @@ class Matcher:
         img = cv2.drawMatches(img1,kp_img,img2,kp_db,matches[:num_matches], flags=2)
         cv2.imwrite(os.getcwd()+os.sep+'M.png',img)
 
-        
+class KNNMatcher(Matcher):
+    def __init__(self, data_desc, query_desc, type_match='bf', measure=cv2.NORM_L2):
+        super().__init__(data_desc, query_desc, type_match=type_match, measure=measure)
+    
+    def match(self, limit=10, min_matches=4, match_ratio=0.75, best_k=20):
+        print('--- MATCHING AND SEARCHING MOST SIMILAR --- ')
+        for img_key, img_res in self.query.items():
+            self.result.append([])
+            for paint_ind, paint_res in enumerate(img_res):
+                matches = []
+                for data_key,data_img in self.data.items():
+                    if paint_res[1] is None or data_img[0][1] is None:
+                        matches.append({'name':data_key,'num':0})
+                    else:
+                        m = self.matcher.knnMatch(paint_res[1], data_img[0][1], best_k)
+                        good_matches = []
+                        for n1,n2 in m:
+                            if n1.distance < match_ratio*n2.distance:
+                                good_matches.append([n1])
+                        matches.append({'name':data_key,'num':len(good_matches)})
+                candidates = sorted(matches, reverse=True, key=lambda k: k['num'])
+                if candidates[0]['num'] >= min_matches:
+                    coincidences = [candidates[k]['name'] for k in range(limit)]
+                else:
+                    """RETURN -1 AS IT IS NOT ON THE DATABASE."""
+                    coincidences = [-1]*limit
+                self.result[-1].append(coincidences)
+            print('Image ['+str(img_key)+'] Processed.')
+            print('-------')
+        print('--- DONE --- ')

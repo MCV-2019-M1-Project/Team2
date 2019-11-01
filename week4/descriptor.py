@@ -83,17 +83,21 @@ class ShiThomasDescriptor(BaseDescriptor):
     def _compute_features(self, img, mask):
         gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
         maxCorners=20; qualityLevel=0.01; minDistance=25; blockSize = 3
+        flag = True if mask is None else False
         mask = np.array(mask,dtype=np.uint8) if mask is not None else np.ones_like(gray,dtype=np.uint8)*255
-        #cv2.imwrite('../results/MASKS/{0:05d}.png'.format(self.num),mask)
+        cv2.imwrite('../results/MASKS/{0:05d}.png'.format(self.num),mask)
         keypoints = cv2.goodFeaturesToTrack(gray, maxCorners, qualityLevel, minDistance, blockSize, mask=mask)
         if keypoints is not None:
             marker = img
             kkpp = []
-            #for point in keypoints:
-                #x,y = point.ravel()
-                #kkpp.append(cv2.KeyPoint(x, y, _size=3))
-                #cv2.circle(marker, (x,y), 10, 152, -1)
-            #cv2.imwrite('../results/SHI/{0:05d}.png'.format(self.num),marker)
+            for point in keypoints:
+                x,y = point.ravel()
+                kkpp.append(cv2.KeyPoint(x, y, _size=3))
+                cv2.circle(marker, (x,y), 10, 152, -1)
+            if flag:
+                cv2.imwrite('../results/DB_SHI/{0:05d}.png'.format(self.num),marker)
+            else:
+                cv2.imwrite('../results/SHI/{0:05d}.png'.format(self.num),marker)
             _,des = self.surf.compute(gray,kkpp)
         else:
             print('Using SURF')
