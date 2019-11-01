@@ -76,11 +76,11 @@ class Matcher:
         img = cv2.drawMatches(img1,kp_img,img2,kp_db,matches[:num_matches], flags=2)
         cv2.imwrite(os.getcwd()+os.sep+'M.png',img)
 
-class KNNMatcher(Matcher):
+class MatcherRatio(Matcher):
     def __init__(self, data_desc, query_desc, type_match='bf', measure=cv2.NORM_L2):
         super().__init__(data_desc, query_desc, type_match=type_match, measure=measure)
     
-    def match(self, limit=10, min_matches=4, match_ratio=0.75, best_k=20):
+    def match(self, limit=10, min_matches=4, match_ratio=0.75):
         print('--- MATCHING AND SEARCHING MOST SIMILAR --- ')
         for img_key, img_res in self.query.items():
             self.result.append([])
@@ -90,7 +90,7 @@ class KNNMatcher(Matcher):
                     if paint_res[1] is None or data_img[0][1] is None:
                         matches.append({'name':data_key,'num':0})
                     else:
-                        m = self.matcher.knnMatch(paint_res[1], data_img[0][1], best_k)
+                        m = self.matcher.match(paint_res[1], data_img[0][1])
                         good_matches = []
                         for n1,n2 in m:
                             if n1.distance < match_ratio*n2.distance:

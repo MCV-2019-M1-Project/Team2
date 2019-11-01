@@ -96,50 +96,11 @@ def test_only_desc():
 		qs_images = pickle.load(ff)
 	with open(res_root+os.sep+'db_images.pkl','rb') as ff:
 		db_images = pickle.load(ff)
-
-	print('-- GETTING MASKS --')
-	start = time.time()
-	mask_dict = []
-	qs_masks = []
-	for ind,img in enumerate(qs_images):
-		qs_masks.append([])
-		mask_dict.append([])
-		for paint in img:
-			mask, mean_points = BackgroundMask4(paint)
-			qs_masks[-1].append(mask)
-			mask_dict[-1].append({"painting":paint,"mean_points":mean_points})
-			"""UNCOMMENT LINE TO PRODUCE THE MASK TO UPLOAD TO THE SERVER"""
-		cv2.imwrite(res_root+os.sep+"QS1W4/{0:05d}.png".format(ind),np.concatenate([item for item in qs_masks[-1]],axis=1))
-	
-	with open(res_root+os.sep+'qs_masks.pkl','wb') as ff:
-		pickle.dump(qs_masks,ff)
+	with open(res_root+os.sep+'qs_masks.pkl','rb') as ff:
+		qs_masks = pickle.load(ff)
+	with open(res_root+os.sep+'qs_bbox.pkl','rb') as ff:
+		qs_bbox = pickle.load(ff)
 	print('-- DONE: Time: '+str(time.time()-start))
-
-	print('-- GETTING TEXTBOXES --')
-	start = time.time()
-	qs_bbox = []
-	for ind,mask in enumerate(mask_dict):
-		qs_bbox.append([])
-		for p, item in enumerate(mask):
-			painting_masked = item["painting"][item["mean_points"]["top"]:item["mean_points"]["bottom"],
-												item["mean_points"]["left"]:item["mean_points"]["right"],:]
-			#painting_masked = cv2.bitwise_and(paint,paint,mask=qs_masks[ind][p])
-			text_mask, textbox = TextBoxRemoval(painting_masked)
-			bbox = [textbox[0][1],textbox[0][0],textbox[1][1],textbox[1][0]]
-			bbox[1] = bbox[1] + item["mean_points"]["top"]
-			bbox[3] = bbox[3] + item["mean_points"]["top"]
-			bbox[0] = bbox[0] + item["mean_points"]["left"]
-			bbox[2] = bbox[2] + item["mean_points"]["left"]
-			qs_bbox[-1].append(bbox)
-	
-	with open(res_root+os.sep+'qs_bbox.pkl','wb') as ff:
-		pickle.dump(qs_bbox,ff)
-	print('-- DONE: Time: '+str(time.time()-start))
-	#with open(res_root+os.sep+'qs_masks.pkl','rb') as ff:
-	#	qs_masks = pickle.load(ff)
-	#with open(res_root+os.sep+'qs_bbox.pkl','rb') as ff:
-	#	qs_bbox = pickle.load(ff)
-	#print('-- DONE: Time: '+str(time.time()-start))
 
 	print('-- COMPUTING QUERY DESCRIPTORS --')
 	start = time.time()
