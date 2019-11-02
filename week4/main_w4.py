@@ -16,8 +16,8 @@ import time
 import sys
 
 # -- DIRECTORIES -- #
-db_path = r"C:\Users\PC\Documents\Roger\Master\M1\Project\bbdd"
-qs_path = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week4\qsd1_w4"
+db_path = "../bbdd"
+qs_path = "../qsd1_w4"
 res_root = "../results"
 qs_corresps_path = os.path.join(qs_path,"gt_corresps.pkl")
 
@@ -29,7 +29,6 @@ def main_qs4(save=True):
     denoiser = Denoise(qs_path)
     denoiser.median_filter(3)
     qs_images = denoiser.tv_bregman(weight=0.01,max_iter=1000,eps=0.001,isotropic=True)
-    qs_images = [[cv2.resize(item[0],(1000,1000))] for item in qs_images]
     print('-- DONE: Time: '+str(time.time()-start))
 
     print('-- GETTING IMAGES --')
@@ -41,7 +40,6 @@ def main_qs4(save=True):
     db_images = []
     for path in sorted(glob(db_path+os.sep+'*.jpg')):
         db_images.append([cv2.imread(path)])
-    db_images = [[cv2.resize(item[0],(1000,1000))] for item in db_images]
     if save:
         with open(res_root+os.sep+'db_images.pkl','wb') as ff:
             pickle.dump(db_images,ff)
@@ -108,9 +106,10 @@ def test_only_desc():
 
     print('-- COMPUTING QUERY DESCRIPTORS --')
     start = time.time()
-    qs_desc = ORBDescriptor(qs_images,qs_masks,qs_bbox)
-    # qs_desc = SURFDescriptor(qs_images,qs_masks,qs_bbox)
-    # qs_desc = DAISYDescriptor(qs_images,qs_masks,qs_bbox)
+    qs_desc = SIFTDescriptor(qs_images,qs_masks,qs_bbox)
+    #qs_desc = ORBDescriptor(qs_images,qs_masks,qs_bbox)
+    #qs_desc = SURFDescriptor(qs_images,qs_masks,qs_bbox)
+    #qs_desc = DAISYDescriptor(qs_images,qs_masks,qs_bbox)
     qs_desc.compute_descriptors()
     with open(res_root+os.sep+'qs_result.pkl','wb') as ff:
         pickle.dump(qs_desc.result,ff)
@@ -118,9 +117,10 @@ def test_only_desc():
 
     print('-- COMPUTING BBDD DESCRIPTORS --')
     start = time.time()
-    db_desc = ORBDescriptor(db_images)
-    # db_desc = SURFDescriptor(db_images)
-    # db_desc = DAISYDescriptor(db_images)
+    db_desc = SIFTDescriptor(db_images)
+    #db_desc = ORBDescriptor(db_images)
+    #db_desc = SURFDescriptor(db_images)
+    #db_desc = DAISYDescriptor(db_images)
     db_desc.compute_descriptors()
     with open(res_root+os.sep+'db_result.pkl','wb') as ff:
         pickle.dump(db_desc.result,ff)
@@ -128,9 +128,14 @@ def test_only_desc():
     
     print('-- MATCHING --')
     start = time.time()
-    matcher = MatcherBF(db_desc.result, qs_desc.result, measure=cv2.NORM_L1)
+    matcher = MatcherFLANN(db_desc.result, qs_desc.result, measure=cv2.NORM_L1)
     # matcher = MatcherFLANN(db_desc.result, qs_desc.result, measure=cv2.NORM_L2)
+    #matcher.match(threshold_distance=550)
     matcher.match()
+    matcher.draw_matches(qs_images[0][1],db_images[62][0],0,1,62,'62.png')
+    matcher.draw_matches(qs_images[4][0],db_images[210][0],4,0,210,'210.png')
+    matcher.draw_matches(qs_images[6][0],db_images[0][0],6,0,0,'0.png')
+    matcher.draw_matches(qs_images[10][0],db_images[172][0],10,0,172,'172.png')
     print('-- DONE: Time: '+str(time.time()-start))
 
     print('-- EVALUATING --')

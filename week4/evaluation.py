@@ -16,6 +16,7 @@ class EvaluateDescriptors():
 		self.query_res = query_results
 		with open(gt_corr_path,'rb') as gt_corrs:
 			self.gt_corrs = pickle.load(gt_corrs)
+		print(self.gt_corrs)
 		self.score = 0
 
 	def compute_mapatk(self,limit=1):

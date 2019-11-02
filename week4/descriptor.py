@@ -79,15 +79,16 @@ class ShiThomasDescriptor(BaseDescriptor):
     def __init__(self, img_list, mask_list=None, bbox_list=None):
         super().__init__(img_list,mask_list,bbox_list)
         self.num = 0
-        hessianThreshold = 400; nOctaves = 4; nOctaveLayers = 3
-        extended = False; upright = False
-        self.surf = cv2.xfeatures2d.SURF_create(hessianThreshold, nOctaves, nOctaveLayers, extended, upright)
+        radius = 15; q_radius = 3; q_theta = 8; q_hist = 8; interpolation = True; use_orientation = False 
+        self.daisy = cv2.xfeatures2d.DAISY_create(radius,q_radius,q_theta,q_hist,interpolation=interpolation,use_orientation=use_orientation)
     
     def _compute_features(self, img, mask):
         gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
         maxCorners=50; qualityLevel=0.01; minDistance=25; blockSize = 3
         flag = True if mask is None else False
         mask = np.array(mask,dtype=np.uint8) if mask is not None else np.ones_like(gray,dtype=np.uint8)*255
+        gray = cv2.resize(gray,(512,512))
+        mask = cv2.resize(mask,(512,512))
         keypoints = cv2.goodFeaturesToTrack(gray, maxCorners, qualityLevel, minDistance, blockSize, mask=mask)
         if keypoints is None:
             return (None,None)
@@ -102,7 +103,7 @@ class ShiThomasDescriptor(BaseDescriptor):
         else:
             cv2.imwrite('../results/MASKS/{0:05d}.png'.format(self.num),mask)
             cv2.imwrite('../results/SHI/{0:05d}.png'.format(self.num),marker)
-        _,des = self.surf.compute(gray,kkpp)
+        _,des = self.daisy.compute(gray,kkpp)
         kp = np.array([k.pt for k in kkpp])
         self.num +=1
         return kp,des
@@ -110,8 +111,8 @@ class ShiThomasDescriptor(BaseDescriptor):
 class SIFTDescriptor(BaseDescriptor):
     def __init__(self, img_list, mask_list=None, bbox_list=None):
         super().__init__(img_list, mask_list, bbox_list)
-        nfeatures = 0; nOctaveLayers = 3,
-        contrastThreshold = 0.04; edgeThreshold = 10; sigma = 1.6
+        nfeatures = 1000; nOctaveLayers = 3
+        contrastThreshold = 0.1; edgeThreshold = 31; sigma = 1.6
         self.sift = cv2.xfeatures2d.SIFT_create(nfeatures,
                         nOctaveLayers,
                         contrastThreshold,
@@ -121,6 +122,8 @@ class SIFTDescriptor(BaseDescriptor):
     def _compute_features(self, img, mask):
         gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
         mask = np.array(mask,dtype=np.uint8) if mask is not None else np.ones_like(gray,dtype=np.uint8)*255
+        gray = cv2.resize(gray,(512,512))
+        mask = cv2.resize(mask,(512,512))
         kkpp, desc = self.sift.detectAndCompute(gray,mask,None)
         kp = np.array([k.pt for k in kkpp])
         return kp,desc
@@ -136,17 +139,5 @@ class SURFDescriptor(BaseDescriptor):
         gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
         mask = np.array(mask,dtype=np.uint8) if mask is not None else np.ones_like(gray,dtype=np.uint8)*255
         kkpp, des = self.surf.detectAndCompute(gray,mask,None)
-        kp = np.array([k.pt for k in kkpp])
-        return kp,des
-
-class DAISYDescriptor(BaseDescriptor):
-    def __init__(self, img_list, mask_list=None, bbox_list=None):
-        super().__init__(img_list, mask_list, bbox_list)
-        self.daisy = cv2.xfeatures2d.DAISY_create()
-    
-    def _compute_features(self, img, mask):
-        gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-        mask = np.array(mask,dtype=np.uint8) if mask is not None else np.ones_like(gray,dtype=np.uint8)*255
-        kkpp, des = self.daisy.detectAndCompute(gray,mask,None)
         kp = np.array([k.pt for k in kkpp])
         return kp,des
