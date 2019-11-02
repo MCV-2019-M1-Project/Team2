@@ -52,13 +52,13 @@ class HarrisDescriptor(BaseDescriptor):
         sift = cv2.xfeatures2d.SIFT_create()
         _,des = sift.compute(gray, kkpp)
         kp = np.array([k.pt for k in kkpp])
-        return (kp,des)
+        return kp,des
 
 class ORBDescriptor(BaseDescriptor):
     def __init__(self, img_list, mask_list=None, bbox_list=None):
         super().__init__(img_list, mask_list, bbox_list)
         """ IF WTA_K IS GREATER THAN 2 DISTANCE ON MATHCER NEEDS TO BE HAMMING2 OTHERWISE HAMMING"""
-        nfeatures = 500; scaleFactor = 1.2; nlevels = 8; edgeThreshold = 31; firstLevel = 0; wta_k = 2
+        nfeatures = 3000; scaleFactor = 1.2; nlevels = 8; edgeThreshold = 31; firstLevel = 0; wta_k = 2
         self.orb = cv2.ORB_create(nfeatures=nfeatures,
                                 scaleFactor=scaleFactor,
                                 nlevels=nlevels,
@@ -69,9 +69,11 @@ class ORBDescriptor(BaseDescriptor):
     def _compute_features(self, img, mask):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         mask = np.array(mask,dtype=np.uint8) if mask is not None else np.ones_like(gray,dtype=np.uint8)*255
+        gray = cv2.resize(gray,(256,256))
+        mask = cv2.resize(mask,(256,256))
         kkpp, des = self.orb.detectAndCompute(gray,mask,None)
         kp = np.array([k.pt for k in kkpp])
-        return (kp,des)
+        return kp,des
 
 class ShiThomasDescriptor(BaseDescriptor):
     def __init__(self, img_list, mask_list=None, bbox_list=None):
@@ -87,6 +89,8 @@ class ShiThomasDescriptor(BaseDescriptor):
         flag = True if mask is None else False
         mask = np.array(mask,dtype=np.uint8) if mask is not None else np.ones_like(gray,dtype=np.uint8)*255
         keypoints = cv2.goodFeaturesToTrack(gray, maxCorners, qualityLevel, minDistance, blockSize, mask=mask)
+        if keypoints is None:
+            return (None,None)
         marker = img
         kkpp = []
         for point in keypoints:
@@ -101,7 +105,7 @@ class ShiThomasDescriptor(BaseDescriptor):
         _,des = self.surf.compute(gray,kkpp)
         kp = np.array([k.pt for k in kkpp])
         self.num +=1
-        return (kp,des)
+        return kp,des
 
 class SIFTDescriptor(BaseDescriptor):
     def __init__(self, img_list, mask_list=None, bbox_list=None):
@@ -119,19 +123,30 @@ class SIFTDescriptor(BaseDescriptor):
         mask = np.array(mask,dtype=np.uint8) if mask is not None else np.ones_like(gray,dtype=np.uint8)*255
         kkpp, desc = self.sift.detectAndCompute(gray,mask,None)
         kp = np.array([k.pt for k in kkpp])
-        return (kp,desc)
+        return kp,desc
 
 class SURFDescriptor(BaseDescriptor):
     def __init__(self, img_list, mask_list=None, bbox_list=None):
         super().__init__(img_list, mask_list, bbox_list)
-        hessianThreshold = 100; nOctaves = 4; nOctaveLayers = 3
-        extended = False; upright = False
+        hessianThreshold = 400; nOctaves = 4; nOctaveLayers = 2; extended = False; upright = True
         self.surf = cv2.xfeatures2d.SURF_create(hessianThreshold, nOctaves, nOctaveLayers, extended, upright)
+        # self.surf = cv2.xfeatures2d.SURF_create(hessianThreshold=400, upright=True)
     
     def _compute_features(self, img, mask):
         gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
         mask = np.array(mask,dtype=np.uint8) if mask is not None else np.ones_like(gray,dtype=np.uint8)*255
         kkpp, des = self.surf.detectAndCompute(gray,mask,None)
         kp = np.array([k.pt for k in kkpp])
-        return (kp,des)
+        return kp,des
 
+class DAISYDescriptor(BaseDescriptor):
+    def __init__(self, img_list, mask_list=None, bbox_list=None):
+        super().__init__(img_list, mask_list, bbox_list)
+        self.daisy = cv2.xfeatures2d.DAISY_create()
+    
+    def _compute_features(self, img, mask):
+        gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+        mask = np.array(mask,dtype=np.uint8) if mask is not None else np.ones_like(gray,dtype=np.uint8)*255
+        kkpp, des = self.daisy.detectAndCompute(gray,mask,None)
+        kp = np.array([k.pt for k in kkpp])
+        return kp,des
