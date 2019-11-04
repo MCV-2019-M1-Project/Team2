@@ -106,7 +106,7 @@ def test_only_desc():
 
     print('-- COMPUTING QUERY DESCRIPTORS --')
     start = time.time()
-    qs_desc = SIFTDescriptor(qs_images,qs_masks,qs_bbox)
+    #qs_desc = SIFTDescriptor(qs_images,qs_masks,qs_bbox)
     #qs_desc = ORBDescriptor(qs_images,qs_masks,qs_bbox)
     #qs_desc = SURFDescriptor(qs_images,qs_masks,qs_bbox)
     #qs_desc = DAISYDescriptor(qs_images,qs_masks,qs_bbox)
@@ -117,7 +117,7 @@ def test_only_desc():
 
     print('-- COMPUTING BBDD DESCRIPTORS --')
     start = time.time()
-    db_desc = SIFTDescriptor(db_images)
+    #db_desc = SIFTDescriptor(db_images)
     #db_desc = ORBDescriptor(db_images)
     #db_desc = SURFDescriptor(db_images)
     #db_desc = DAISYDescriptor(db_images)
@@ -128,27 +128,30 @@ def test_only_desc():
     
     print('-- MATCHING --')
     start = time.time()
-    matcher = MatcherFLANN(db_desc.result, qs_desc.result, measure=cv2.NORM_L1)
+    matcher = MatcherBF(db_desc.result, qs_desc.result, measure=cv2.NORM_L1)
     # matcher = MatcherFLANN(db_desc.result, qs_desc.result, measure=cv2.NORM_L2)
     #matcher.match(threshold_distance=550)
     matcher.match()
-    matcher.draw_matches(qs_images[0][1],db_images[62][0],0,1,62,'62.png')
-    matcher.draw_matches(qs_images[4][0],db_images[210][0],4,0,210,'210.png')
-    matcher.draw_matches(qs_images[6][0],db_images[0][0],6,0,0,'0.png')
-    matcher.draw_matches(qs_images[10][0],db_images[172][0],10,0,172,'172.png')
+    with open(res_root+os.sep+'result.pkl','wb') as ff:
+        pickle.dump(matcher.result,ff)
     print('-- DONE: Time: '+str(time.time()-start))
 
-    print('-- EVALUATING --')
-    start = time.time()
-    evaluator = EvaluateDescriptors(matcher.result,qs_corresps_path)
-    evaluator.compute_mapatk(limit=1)
-    print("MAP@1 = "+str(evaluator.score))
-    evaluator.compute_mapatk(limit=5)
-    print("MAP@5 = "+str(evaluator.score))
-    print("Done. Time: "+str(time.time()-start))
+    #print('-- EVALUATING --')
+    #start = time.time()
+    #evaluator = EvaluateDescriptors(matcher.result,qs_corresps_path)
+    #evaluator.compute_mapatk(limit=1)
+    #print("MAP@1 = "+str(evaluator.score))
+    #evaluator.compute_mapatk(limit=5)
+    #print("MAP@5 = "+str(evaluator.score))
+    #print("Done. Time: "+str(time.time()-start))
 
-    print("Total time: "+str(time.time()-global_start))
+    #print("Total time: "+str(time.time()-global_start))
 
 if __name__ == "__main__":
-    #main_qs4(save=True)
+    main_qs4(save=True)
+	"""TRY 
+	- ORB with nF=1500 scaleFactor = 1.2; nlevels = 8; edgeThreshold = 31; firstLevel = 0; wta_k = 2.
+	with BFMATCHER 400 THRESHOLD
+	-SIFT nfeatures = 1000; nOctaveLayers = 3; contrastThreshold = 0.1; edgeThreshold = 31; sigma = 1.6.
+	with FLANNMAtcher ratio 0.65 i threshold 250."""
     test_only_desc()

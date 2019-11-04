@@ -58,7 +58,7 @@ class ORBDescriptor(BaseDescriptor):
     def __init__(self, img_list, mask_list=None, bbox_list=None):
         super().__init__(img_list, mask_list, bbox_list)
         """ IF WTA_K IS GREATER THAN 2 DISTANCE ON MATHCER NEEDS TO BE HAMMING2 OTHERWISE HAMMING"""
-        nfeatures = 3000; scaleFactor = 1.2; nlevels = 8; edgeThreshold = 31; firstLevel = 0; wta_k = 2
+        nfeatures = 1500; scaleFactor = 1.2; nlevels = 8; edgeThreshold = 31; firstLevel = 0; wta_k = 2
         self.orb = cv2.ORB_create(nfeatures=nfeatures,
                                 scaleFactor=scaleFactor,
                                 nlevels=nlevels,
@@ -69,8 +69,8 @@ class ORBDescriptor(BaseDescriptor):
     def _compute_features(self, img, mask):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         mask = np.array(mask,dtype=np.uint8) if mask is not None else np.ones_like(gray,dtype=np.uint8)*255
-        gray = cv2.resize(gray,(256,256))
-        mask = cv2.resize(mask,(256,256))
+        gray = cv2.resize(gray,(512,512))
+        mask = cv2.resize(mask,(512,512))
         kkpp, des = self.orb.detectAndCompute(gray,mask,None)
         kp = np.array([k.pt for k in kkpp])
         return kp,des

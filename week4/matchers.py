@@ -20,7 +20,7 @@ class MatcherBF:
         self.result = []
         self.matcher = cv2.BFMatcher(measure,crossCheck=True)
     
-    def match(self, limit=10, min_matches=4, threshold_distance=250):
+    def match(self, limit=10, min_matches=4, threshold_distance=400):
         """METHOD::SEARCH
             Matches the k number of features more similar from the query set.
             Depending on the descriptor, threshold should be different."""
