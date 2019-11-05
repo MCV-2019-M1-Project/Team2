@@ -47,25 +47,23 @@ def main():
 
     closest_data = []
     for i in range(NUM_CLUSTERS):
-        print("i " + str(i))
         center_vec = centers[i].reshape(1, -1)
         data_idx_within_i_cluster = [idx for idx, clu_num in enumerate(clusters) if clu_num == i]
         cluster_size = len(data_idx_within_i_cluster)
         if cluster_size > 0:
-            print("a " + str(len(data_idx_within_i_cluster)))
-            print("b " + str(centers.shape))
             X_cluster = np.zeros((len(data_idx_within_i_cluster), centers.shape[1]))
-            print("c " + str(X_cluster.shape))
             for row_num, data_idx in enumerate(data_idx_within_i_cluster):
                 one_row = X[data_idx]
                 X_cluster[row_num] = one_row
 
             closest, _ = pairwise_distances_argmin_min(center_vec, X_cluster)
             closest_to_find = min(5, cluster_size)
-            closest_idx_in_one_cluster_tf_matrix = closest[0]
-            closest_data_row_num = data_idx_within_i_cluster[closest_idx_in_one_cluster_tf_matrix]
-            data_id = bbdd_images_files[closest_data_row_num]
-            print("Closest images to cluster center for cluster " + str(i))
+            print(closest)
+            closest_id_in_X_cluster = closest[:closest_to_find]
+            print(closest_id_in_X_cluster)
+            closest_data_row_num = np.array(data_idx_within_i_cluster)[closest_id_in_X_cluster.astype(int)]
+            data_id = np.array(bbdd_images_files)[closest_data_row_num.astype(int)]
+            print("Closest images to cluster center for cluster " + str(i + 1))
             print(data_id)
             closest_data.append(data_id)
 
