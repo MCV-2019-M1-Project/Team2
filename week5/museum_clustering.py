@@ -1,6 +1,7 @@
 #  -- IMPORTS -- #
 from glob import glob
 from transform_descriptor import TransformDescriptor
+from background_removal import BackgroundMask4
 import cv2
 import os
 import time
@@ -16,21 +17,30 @@ cluster_root = "../cluster"
 NUM_CLUSTERS = 10
 
 
-def main():
-    start = time.time()
+def chi2_distance(x, y, eps=1e-10):
+    """FUNCTION::CHI2_DISTANCE:
+        >- Returns: The chi squared distance between two arrays.
+        Works well with histograms."""
+    return np.sum((np.power(np.subtract(x, y), 2) / (np.add(x, y) + eps)), axis=-1)
 
+
+def main():
     print("\nLoading bbdd images...")
     start = time.time()
     bbdd_images_files = sorted(glob(os.path.join(db_path, "*.jpg"))[:])
     bbdd_images = [[cv2.imread(item)] for item in bbdd_images_files]
     bbdd_images = [[cv2.resize(item[0], (1000, 1000))] for item in bbdd_images]
+    bbdd_masks = [[BackgroundMask4(img[0])[0] for img in bbdd_images]]
     print(len(bbdd_images))
+    print(len(bbdd_masks[0]))
+    print(bbdd_images[0])
+    print(bbdd_masks[0][0])
     print("Done. Time: " + str(time.time() - start))
 
     ## COMPUTING DESCRIPTORS
     print("\nComputing descriptors for bbdd images...")
     start = time.time()
-    bbdd_descriptor = TransformDescriptor(bbdd_images, None, None)
+    bbdd_descriptor = TransformDescriptor(bbdd_images, bbdd_masks[0], None)
     bbdd_results = bbdd_descriptor.compute_descriptors(transform_type='hog')
     X = np.array([np.array(result).reshape(-1) for (k, result) in bbdd_results.items()])
     print(X.shape)
