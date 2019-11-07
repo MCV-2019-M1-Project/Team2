@@ -9,6 +9,7 @@ from sklearn.cluster import KMeans
 import numpy as np
 import shutil
 from sklearn.metrics import pairwise_distances_argmin_min
+from scipy.spatial import distance
 
 # -- DIRECTORIES -- #
 db_path = "../bbdd"
@@ -74,23 +75,27 @@ def main(descriptor='texture'):
         cluster_size = len(data_idx_within_i_cluster)
         if cluster_size > 0:
             X_cluster = np.zeros((len(data_idx_within_i_cluster), centers.shape[1]))
+            distances = {}
             for row_num, data_idx in enumerate(data_idx_within_i_cluster):
                 one_row = X[data_idx]
                 X_cluster[row_num] = one_row
+                distances[data_idx] = distance.euclidean(one_row, center_vec[0]) # np.linalg.norm(one_row - center_vec[0])
 
             closest, _ = pairwise_distances_argmin_min(center_vec, X_cluster)
             closest_to_find = min(5, cluster_size)
             closest_id_in_X_cluster = closest[:closest_to_find]
             closest_data_row_num = np.array(data_idx_within_i_cluster)[closest_id_in_X_cluster.astype(int)]
             data_id = np.array(bbdd_images_files)[closest_data_row_num.astype(int)]
+            data2_id = sorted(distances, key=distances.get)[:closest_to_find]
             print("Closest images to cluster center for cluster " + str(i + 1))
             print(data_id)
+            print(data2_id)
             closest_data.append(data_id)
 
     print("Done. Time: " + str(time.time() - start))
 
 
 if __name__ == "__main__":
-    # main('texture')
-    # main('color')
+    main('texture')
+    main('color')
     main('combined')
