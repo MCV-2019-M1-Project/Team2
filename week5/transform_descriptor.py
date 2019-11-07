@@ -57,7 +57,6 @@ class TransformDescriptor():
         self.dct_blocks = dct_blocks
         print('--- COMPUTING DESCRIPTORS --- ')
         for k, images in enumerate(self.img_list):
-            # print(str(k)+' out of '+str(len(self.img_list)))
             self.result[k] = []
             for i, paint in enumerate(images):
                 self.result[k].append(self._compute_features(paint, self.mask_list[k][i], self.bbox_list[k][i]))
