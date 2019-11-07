@@ -111,4 +111,4 @@ def main(descriptor='texture'):
 
 
 if __name__ == "__main__":
-	main('texture')
+	main('color')
