@@ -28,7 +28,7 @@ def computeEdgesToCountPaintings(img):
     edges = cv2.dilate(edges,kernel,iterations=1)
     edges = cv2.resize(edges,(original_size[1],original_size[0]))
 
-    # cv2.imwrite(r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week5\qsd2_w3_denoised\0002_edges.png",edges)
+    # cv2.imwrite(r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week5\qsd1_w5_denoised_rotated\00004_edges.png",edges)
 
     return edges
 
@@ -101,6 +101,7 @@ def countNumberPaintingsBasedOnEdges(edges):
         else:
             consider_ind = True
 
+    print("paintings_col_inds",paintings_col_inds)
     print("adjusted_paintings_col_inds",adjusted_paintings_col_inds)
     print("readjusted_paintings_col_inds",readjusted_paintings_col_inds)
 
@@ -177,6 +178,7 @@ def countNumberPaintingsBasedOnEdges(edges):
         else:
             consider_ind = True
 
+    print("paintings_row_inds",paintings_row_inds)
     print("adjusted_paintings_row_inds",adjusted_paintings_row_inds)
     print("readjusted_paintings_row_inds",readjusted_paintings_row_inds)
 
@@ -253,8 +255,6 @@ def main(img_folder,method):
             if any([item in img_path for item in ["00007","00010","00012","00015","00016","00018","00019","00023"]]):
                 expected = 3
 
-
-
         img = cv2.imread(img_path)
 
         if method == "EDGES":
@@ -270,7 +270,7 @@ def main(img_folder,method):
         split_images = splitImage(img, cut_points, display)
         total_length = 0
         for ind,split_img in enumerate(split_images):
-            cv2.imwrite(img_path.replace(".jpg","_split"+str(ind)+".png"),split_img)
+            cv2.imwrite(img_path.replace("qsd1_w5_denoised_rotated","qsd1_w5_denoised_rotated_split").replace(".jpg","_"+str(ind)+".jpg"),split_img)
             if display == "horizontal":
                 total_length += split_img.shape[1]
             else:
@@ -292,7 +292,8 @@ if __name__ == '__main__':
     # imgs_folder = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week5\qsd1_w4_denoised"
     # imgs_folder = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week5\qsd2_w3_denoised"
     # imgs_folder = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week5\qsd2_w2_denoised"
-    imgs_folder = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week5\qsd1_w5_denoised"
+    # imgs_folder = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week5\qsd1_w5_denoised"
+    imgs_folder = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week5\qsd1_w5_denoised_rotated"
     main(imgs_folder,method="EDGES")
 
 """
