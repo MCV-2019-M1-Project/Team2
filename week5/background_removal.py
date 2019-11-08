@@ -497,13 +497,12 @@ def BackgroundMask420(img,img_path):
             x2 = int(x0 - large_number*(-b))
             y2 = int(y0 - large_number*(a))
 
-            # cv2.line(img,(x1,y1),(x2,y2),(0,0,255),2) # Això no cal
-
             try:
                 slope=(y2-y1)/(x2-x1)
             except:
-                slope = 90
-            degrees = np.abs(np.arctan([slope])*180/np.pi)
+                degrees = 90
+            else:
+                degrees = np.abs(np.arctan([slope])*180/np.pi)
             if degrees < degrees_margin or (90-degrees_margin) < degrees:
                 # Horizontal line
                 if degrees < degrees_margin:
@@ -537,7 +536,6 @@ def BackgroundMask420(img,img_path):
     mask = np.zeros(shape=img.shape[:2],dtype=np.uint8)
     for k,v in lines_wanted.items():
         cv2.line(mask,(v[0],v[2]),(v[1],v[3]),(255,255,255),2)
-        cv2.line(img,(v[0],v[2]),(v[1],v[3]),(0,0,255),2) # Això no cal
 
     # Floodfill from center of lines drawn
     center_x = int((np.mean(lines_wanted["bottom"][2:4]+np.mean(lines_wanted["top"][2:4])))/2)
@@ -549,9 +547,9 @@ def BackgroundMask420(img,img_path):
     for k,v in lines_wanted.items():
         cv2.line(mask,(v[0],v[2]),(v[1],v[3]),(0,0,0),2)
 
-    cv2.imwrite(img_path.replace(".jpg","_lines.png"),img)
+    # cv2.imwrite(img_path.replace(".jpg","_lines.png"),img)
 
-    # Compute mean points
+    # Compute mean points (això no serveix per a res, realment)
     mean_points = {}
     mean_points["top"] = int(np.mean(lines_wanted["top"][2:4])*img.shape[0])
     mean_points["left"] = int(np.mean(lines_wanted["left"][:2])*img.shape[1])
