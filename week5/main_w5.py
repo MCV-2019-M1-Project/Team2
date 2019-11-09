@@ -3,6 +3,7 @@
 # -- IMPORTS -- #
 from noise import Denoiser
 from detect_orientation import Orientation
+from split_image import SplitImages
 from evaluation import EvaluateAngles
 from glob import glob
 import numpy as np
@@ -16,7 +17,7 @@ db_path = "../bbdd"
 res_root = "../results"
 qs1_w5 = "../qsd1_w5"
 
-def main():
+def main(eval_=True):
     global_start = time.time()
 
     print('-- READING IMAGES --')
@@ -53,12 +54,26 @@ def main():
             qs_rotated = pickle.load(ff)
     print('-- DONE: Time: '+str(time.time()-start))
 
-    print('-- EVALUATING ANGLES --')
+    if eval_:
+        print('-- EVALUATING ANGLES --')
+        start = time.time()
+        evaluator = EvaluateAngles(qs_angles,qs1_w5+os.sep+'angles_qsd1w5.pkl')
+        score = evaluator.evaluate(degree_margin=5)
+        print('-- DONE: Time: '+str(time.time()-start))
+
+    print('-- SPLITTING IMAGES --')
     start = time.time()
-    evaluator = EvaluateAngles(qs_angles,qs1_w5+os.sep+'angles_qsd1w5.pkl')
-    score = evaluator.evaluate(degree_margin=1)
-    score = evaluator.evaluate(degree_margin=5)
+    if not os.path.isfile(res_root+os.sep+'splitted.pkl'):
+        spliter = SplitImages(qs_rotated)
+        qs_splitted = spliter.get_paintings()
+        with open(res_root+os.sep+'splitted.pkl','wb') as ff:
+            pickle.dump(qs_splitted,ff)
+    else:
+        with open(res_root+os.sep+'splitted.pkl','rb') as ff:
+            qs_splitted = pickle.load(ff)
     print('-- DONE: Time: '+str(time.time()-start))
 
+    print('-- COMPUTE FOREGROUND --')
+    start = time.time()
 if __name__ == "__main__":
-    main()
+    main(eval_=True)
