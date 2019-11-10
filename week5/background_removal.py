@@ -541,7 +541,7 @@ def BackgroundMask420(img,img_path):
     center_x = int((np.mean(lines_wanted["bottom"][2:4]+np.mean(lines_wanted["top"][2:4])))/2)
     center_y = int((np.mean(lines_wanted["right"][:2])+np.mean(lines_wanted["left"][:2]))/2)
     mask_flood = np.zeros(shape=(mask.shape[0]+2,mask.shape[1]+2),dtype=np.uint8)
-    cv2.floodFill(mask, mask_flood, (center_y,center_x), (255,255,255));
+    cv2.floodFill(mask, mask_flood, (center_y,center_x), (255,255,255))
 
     # Depaint lines
     for k,v in lines_wanted.items():
@@ -558,6 +558,21 @@ def BackgroundMask420(img,img_path):
 
     return mask, mean_points
 
+class BackgroundRemoval():
+    """CLASS:BackgroundRemoval:
+        >- Detects the foreground, giving mask for each image."""
+    def __init__(self,img_list):
+        self.img_list = img_list
+        self.masks = []
+    
+    def remove_background(self):
+        for k, img in enumerate(self.img_list):
+            self.masks.append([])
+            for p, paint in enumerate(img):
+                mask,_ = BackgroundMask420(paint,None)
+                self.masks[-1].append(mask)
+                cv2.imwrite('../results/Background/{0:02}_{1}.png'.format(k,p),mask)
+        return self.masks
 
 if __name__ == '__main__':
     imgs_folder = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week5\qsd1_w5_denoised_rotated_split"

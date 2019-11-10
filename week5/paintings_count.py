@@ -219,20 +219,25 @@ class colorRegion(Enum):
     BLACK = 0,
     WHITE = 1
 
-def getListOfPaintings(img_list,method):
-    output = []
-    img_list = [item[0] for item in img_list]
-    for img in img_list:
-        if method == "EDGES":
+class SplitImages():
+    """CLASS::SplitImages:
+        >- Splits the images to get the paintings separately."""
+    def __init__(self,img_list):
+        self.img_list = img_list
+        self.output = []
+
+    def get_paintings(self):
+        for k,img in enumerate(self.img_list):
             mask = computeEdgesToCountPaintings(img)
             cut_points, display = countNumberPaintingsBasedOnEdges(mask)
-        if len(cut_points) == 2:
-            print("-- Cut at pixel: ", cut_points, "Display", display)
-            output.append(splitImage(img, cut_points, display))
-        else:
-            output.append([img])
-    return output
-
+            if len(cut_points) > 1:
+                print("-- Cut at pixel/s: ", cut_points, "Display", display)
+                self.output.append(splitImage(img, cut_points, display))
+            else:
+                self.output.append([img])
+            for s,split in enumerate(self.output[-1]):
+                cv2.imwrite('../results/Split/{0:02}_{1}.png'.format(k,s),split)
+        return self.output
 
 def main(img_folder,method):
     error_images = []
