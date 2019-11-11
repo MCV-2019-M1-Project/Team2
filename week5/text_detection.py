@@ -1,4 +1,5 @@
 # -- IMPORTS -- #
+from copy import copy
 import numpy as np
 import pickle
 import cv2
@@ -23,6 +24,7 @@ class TextDetection():
         return self.text_masks, self.text_boxes
 
     def detect_text(self,paint,k,p):
+        #paint = cv2.resize(paint,(512,512),interpolation=cv2.INTER_AREA)
         gray = cv2.cvtColor(paint,cv2.COLOR_BGR2GRAY)
         inv = cv2.bitwise_not(gray)
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(50,20))
@@ -36,20 +38,46 @@ class TextDetection():
         black_masked = cv2.bitwise_and(inv, inv, mask=black_mask)
         _, white_img = cv2.threshold(white_masked, 200, 255, cv2.THRESH_TOZERO)
         _, black_img = cv2.threshold(black_masked, 200, 255, cv2.THRESH_TOZERO)
-        return self.search_rectangles(white_img,black_img,k,p)
+        return self.search_rectangles(white_img,black_img,k,p,paint)
     
-    def search_rectangles(self,white,black,k,p):
-        white_found = np.zeros_like(white)
-        black_found = np.zeros_like(black)
-        # Convert values from 200-255 to 0-255
-        for value in range(201,256,1):
-            white_found[white==value] = int((value-201)*(255/54))
-            black_found[black==value] = int((value-201)*(255/54))
-        """NOW WE KNOW THAT THE RECTANGLE HAS AN HOMOGENOUS COLOR, BUT AT DIFFERENT THRESHOLDS.
-            CAN USE OTSU'S BINARIZATION OR FIND MAGIC NUMBERS.
-            TO FIND THE RECTANGLE: CANNYclear/FINDCONTOURS, BOUNDINGRECT"""
-        cv2.imwrite('../results/TextBox/{0:02}_{1}_{2}.png'.format(k,p,'white'),white_found)
-        cv2.imwrite('../results/TextBox/{0:02}_{1}_{2}.png'.format(k,p,'black'),black_found)
+    def search_rectangles(self,white,black,k,p,paint):
+        step=10; start = 200; end = 256
+        white_paint = copy(paint)
+        black_paint = copy(paint)
+        min_width = 150; min_height=10
+        rectangles = []
+        detection_kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(50,20))
+        if paint.shape[0] > 1000:
+            remove_kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(40,40))
+        else: 
+            remove_kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(20,20))
+        for v,value in enumerate(range(start,end,step)):
+            white_found = cv2.inRange(white,value,value+step)
+            black_found = cv2.inRange(black,value,value+step)
+            white_found = cv2.morphologyEx(white_found,cv2.MORPH_CLOSE,detection_kernel)
+            black_found = cv2.morphologyEx(black_found,cv2.MORPH_CLOSE,detection_kernel)
+            white_found = cv2.morphologyEx(white_found,cv2.MORPH_OPEN,remove_kernel)
+            black_found = cv2.morphologyEx(black_found,cv2.MORPH_OPEN,remove_kernel)
+            if (np.sum(white_found,axis=None)!=0):
+                white_canny = cv2.Canny(white_found,100,100,apertureSize=3)
+                _, white_cont, _ = cv2.findContours(white_canny, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                if len(white_cont)==2:
+                    for cnt in white_cont:
+                        x,y,w,h = cv2.boundingRect(cnt)
+                        if w > min_width and h > min_height:
+                            cv2.rectangle(white_paint,(x,y),(x+w,y+h),(0,0,255),5)
+                            rectangles.append((x,y,w,h))
+                cv2.imwrite('../results/TextBox/{0}_{1}_{2}.png'.format(k,p,'white'),white_paint)
+            if (np.sum(black_found,axis=None)!=0):
+                black_canny = cv2.Canny(black_found,100,100,apertureSize=3)
+                _, black_cont, _ = cv2.findContours(black_canny, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                if len(black_cont)==2:
+                    for cnt in black_cont:
+                        x,y,w,h = cv2.boundingRect(cnt)
+                        if w > min_width and h > min_height:
+                            cv2.rectangle(black_paint,(x,y),(x+w,y+h),(0,0,255),5)
+                            rectangles.append((x,y,w,h))
+                cv2.imwrite('../results/TextBox/{0}_{1}_{2}.png'.format(k,p,'black'),black_paint)
         return 0,0
 
 

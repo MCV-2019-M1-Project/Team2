@@ -10,7 +10,7 @@ def TextBoxRemoval(img):
     resize_size = (1000,1000)
     rectangle_max_min_difference = 10
     col_width_cut = 10
-    th_gray = 30
+    th_gray = 200
     min_ratio = 0.08
     max_ratio = 0.4
     row_limits = [0.35,0.65]
