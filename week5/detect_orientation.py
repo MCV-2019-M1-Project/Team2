@@ -55,7 +55,10 @@ class Orientation():
 		mark = np.copy(img_inpaint)
 		cv2.imwrite('../results/Orientation/{0:02}_final.png'.format(k), mark)
 
-		median_angle = np.abs(median_angle) if original_median_angle >= 0 else 180-np.abs(median_angle)
+		if median_angle > 0:
+	            median_angle = 180 - median_angle
+		else:
+		    median_angle = np.abs(median_angle)
 		print('Image ['+str(k)+'] Processed.')
 		return median_angle, img_inpaint
 
