@@ -44,14 +44,18 @@ def main(eval_=True):
     start = time.time()
     if not (os.path.isfile(res_root+os.sep+'angles.pkl') and os.path.isfile(res_root+os.sep+'rotated.pkl')):
         orientation = Orientation(qs_denoised)
-        qs_angles, qs_rotated = orientation.compute_orientation()
+        qs_angles, qs_angles_real, qs_rotated = orientation.compute_orientation()
         with open(res_root+os.sep+'angles.pkl','wb') as ff:
             pickle.dump(qs_angles,ff)
+        with open(res_root+os.sep+'angles_real.pkl','wb') as ff:
+            pickle.dump(qs_angles_real,ff)
         with open(res_root+os.sep+'rotated.pkl','wb') as ff:
             pickle.dump(qs_rotated,ff)
     else:
         with open(res_root+os.sep+'angles.pkl','rb') as ff:
             qs_angles = pickle.load(ff)
+        with open(res_root+os.sep+'angles_real.pkl','rb') as ff:
+            qs_angles_real = pickle.load(ff)
         with open(res_root+os.sep+'rotated.pkl','rb') as ff:
             qs_rotated = pickle.load(ff)
     print('-- DONE: Time: '+str(time.time()-start))
@@ -102,16 +106,9 @@ def main(eval_=True):
         with open(res_root+os.sep+'text_masks.pkl','rb') as ff:
             text_masks = pickle.load(ff)
     print('-- DONE: Time: '+str(time.time()-start))
+    
+    print('-- Total time: '+str(time.time()-global_start))
 
-    print('-- GETTING FG PIXELS --')
-    start = time.time()
-    num = 0
-    for img,mask in zip(qs_splitted,qs_masks):
-        for paint,pmask in zip(img,mask):
-            fg = GetForegroundPixels(paint,mask)
-            cv2.imwrite('../results/Foreground/{0:02}.png',fg)
-            num += 1
-    print('-- DONE: Time: '+str(time.time()-start))
-
+    
 if __name__ == "__main__":
     main(eval_=True)
