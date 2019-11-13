@@ -8,6 +8,7 @@ from background_removal import BackgroundRemoval, GetForegroundPixels
 from textbox_removal import TextDetection
 from evaluation import EvaluateAngles, EvaluateIoU
 from glob import glob
+from scipy.ndimage import rotate
 import numpy as np
 import math
 import pickle
@@ -24,9 +25,9 @@ def rotate_point(x,y,xm,ym,a):
 #
 
 # -- DIRECTORIES -- #
-db_path = "../bbdd"
+db_path = r"C:\Users\PC\Documents\Roger\Master\M1\Project\bbdd"
 res_root = "../results"
-qs1_w5 = "../qsd1_w5"
+qs1_w5 = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week5\qsd1_w5"
 
 def main(eval_=True):
     global_start = time.time()
@@ -118,7 +119,7 @@ def main(eval_=True):
             # Variables needed
             angle_real = qs_angles_real[ind]
             split_masks_bboxs = qs_bboxs_rot[ind]
-            split_masks = qs_masks[ind]
+            split_masks = qs_masks_rot[ind]
             display = qs_displays[ind]
             axis = 0 if display == "vertical" else 1
 
@@ -175,7 +176,7 @@ def main(eval_=True):
 
     print('-- COMPUTE TEXTBOXES --')
     start = time.time()
-    if not (os.path.isfile(res_root+os.sep+'text_mask.pkl') and os.path.isfile(res_root+os.sep+'text_boxes.pkl')):
+    if not (os.path.isfile(res_root+os.sep+'text_masks.pkl') and os.path.isfile(res_root+os.sep+'text_boxes.pkl')):
         text_removal = TextDetection(qs_splitted)
         text_masks, text_boxes = text_removal.detect()
         with open(res_root+os.sep+'text_boxes.pkl','wb') as ff:
