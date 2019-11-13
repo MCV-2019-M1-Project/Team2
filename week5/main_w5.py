@@ -42,7 +42,7 @@ def main(eval_=True):
 
     print('-- DETECTING ORIENTATION --')
     start = time.time()
-    if not (os.path.isfile(res_root+os.sep+'angles.pkl') and os.path.isfile(res_root+os.sep+'rotated.pkl')):
+    if not (os.path.isfile(res_root+os.sep+'angles.pkl') and os.path.isfile(res_root+os.sep+'rotated.pkl') and os.path.isfile(res_root+os.sep+'angles_real.pkl')):
         orientation = Orientation(qs_denoised)
         qs_angles, qs_angles_real, qs_rotated = orientation.compute_orientation()
         with open(res_root+os.sep+'angles.pkl','wb') as ff:
@@ -69,19 +69,23 @@ def main(eval_=True):
 
     print('-- SPLITTING IMAGES --')
     start = time.time()
-    if not os.path.isfile(res_root+os.sep+'splitted.pkl'):
+    if not (os.path.isfile(res_root+os.sep+'splitted.pkl') and os.path.isfile(res_root+os.sep+'qs_displays.pkl')):
         spliter = SplitImages(qs_rotated)
-        qs_splitted = spliter.get_paintings()
+        qs_splitted, qs_displays = spliter.get_paintings()
         with open(res_root+os.sep+'splitted.pkl','wb') as ff:
             pickle.dump(qs_splitted,ff)
+        with open(res_root+os.sep+'qs_displays.pkl','wb') as ff:
+            pickle.dump(qs_displays,ff)
     else:
         with open(res_root+os.sep+'splitted.pkl','rb') as ff:
             qs_splitted = pickle.load(ff)
+        with open(res_root+os.sep+'qs_displays.pkl','rb') as ff:
+            qs_displays = pickle.load(ff)
     print('-- DONE: Time: '+str(time.time()-start))
 
     print('-- COMPUTE FOREGROUND --')
     start = time.time()
-    if not os.path.isfile(res_root+os.sep+'qs_masks.pkl'):
+    if not (os.path.isfile(res_root+os.sep+'qs_masks.pkl') and os.path.isfile(res_root+os.sep+'qs_bboxs_rot.pkl')):
         removal = BackgroundRemoval(qs_splitted)
         qs_masks, qs_bboxs_rot = removal.remove_background()
         with open(res_root+os.sep+'qs_masks.pkl','wb') as ff:
