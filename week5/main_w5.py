@@ -83,12 +83,16 @@ def main(eval_=True):
     start = time.time()
     if not os.path.isfile(res_root+os.sep+'qs_masks.pkl'):
         removal = BackgroundRemoval(qs_splitted)
-        qs_masks = removal.remove_background()
+        qs_masks, qs_bboxs_rot = removal.remove_background()
         with open(res_root+os.sep+'qs_masks.pkl','wb') as ff:
             pickle.dump(qs_masks,ff)
+        with open(res_root+os.sep+'qs_bboxs_rot.pkl','wb') as ff:
+            pickle.dump(qs_bboxs_rot,ff)
     else:
         with open(res_root+os.sep+'qs_masks.pkl','rb') as ff:
             qs_masks = pickle.load(ff)
+        with open(res_root+os.sep+'qs_bboxs_rot.pkl','rb') as ff:
+            qs_bboxs_rot = pickle.load(ff)
     print('-- DONE: Time: '+str(time.time()-start))
 
     print('-- COMPUTE TEXTBOXES --')
