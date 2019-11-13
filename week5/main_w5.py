@@ -9,10 +9,19 @@ from textbox_removal import TextDetection
 from evaluation import EvaluateAngles, EvaluateIoU
 from glob import glob
 import numpy as np
+import math
 import pickle
 import time
 import cv2
 import os
+
+# This function has to go somewhere
+def rotate_point(x,y,xm,ym,a):
+    a = a*math.pi/180
+    xr = (x - xm) * math.cos(a) - (y - ym) * math.sin(a) + xm
+    yr = (x - xm) * math.sin(a) + (y - ym) * math.cos(a) + ym
+    return [int(xr), int(yr)]
+#
 
 # -- DIRECTORIES -- #
 db_path = "../bbdd"
@@ -85,18 +94,83 @@ def main(eval_=True):
 
     print('-- COMPUTE FOREGROUND --')
     start = time.time()
-    if not (os.path.isfile(res_root+os.sep+'qs_masks.pkl') and os.path.isfile(res_root+os.sep+'qs_bboxs_rot.pkl')):
+    if not (os.path.isfile(res_root+os.sep+'qs_masks_rot.pkl') and os.path.isfile(res_root+os.sep+'qs_bboxs_rot.pkl')):
         removal = BackgroundRemoval(qs_splitted)
-        qs_masks, qs_bboxs_rot = removal.remove_background()
-        with open(res_root+os.sep+'qs_masks.pkl','wb') as ff:
-            pickle.dump(qs_masks,ff)
+        qs_masks_rot, qs_bboxs_rot = removal.remove_background()
+        with open(res_root+os.sep+'qs_masks_rot.pkl','wb') as ff:
+            pickle.dump(qs_masks_rot,ff)
         with open(res_root+os.sep+'qs_bboxs_rot.pkl','wb') as ff:
             pickle.dump(qs_bboxs_rot,ff)
     else:
-        with open(res_root+os.sep+'qs_masks.pkl','rb') as ff:
-            qs_masks = pickle.load(ff)
+        with open(res_root+os.sep+'qs_masks_rot.pkl','rb') as ff:
+            qs_masks_rot = pickle.load(ff)
         with open(res_root+os.sep+'qs_bboxs_rot.pkl','rb') as ff:
             qs_bboxs_rot = pickle.load(ff)
+    print('-- DONE: Time: '+str(time.time()-start))
+
+    print('-- UNROTATE MASKS AND FOREGROUND BOUNDING BOXES --')
+    start = time.time()
+    if not (os.path.isfile(res_root+os.sep+'qs_masks.pkl') and os.path.isfile(res_root+os.sep+'qs_bboxs.pkl')):
+        ### --- Això ha d'anar a algun lloc ---
+        qs_masks = []
+        qs_bboxs = []
+        for ind,qs_img in enumerate(qs_images):
+            # Variables needed
+            angle_real = qs_angles_real[ind]
+            split_masks_bboxs = qs_bboxs_rot[ind]
+            split_masks = qs_masks[ind]
+            display = qs_displays[ind]
+            axis = 0 if display == "vertical" else 1
+
+            # Join masks in 1 image
+            join_mask = np.concatenate(split_masks,axis=axis)
+            # Rotate joined mask without reshaping
+            join_mask_unrot = rotate(join_mask,-angle_real,reshape=False)
+
+            # Compute cutting points for returning to original image
+            to_cut = (np.array(join_mask_unrot.shape[:2]) - np.array(qs_img.shape[:2]))/2
+            # Cut rotated joined mask
+            join_mask_unrot_cut = join_mask_unrot[int(to_cut[0]):int(join_mask_unrot.shape[0]-to_cut[0]),
+                                                  int(to_cut[1]):int(join_mask_unrot.shape[1]-to_cut[1])]
+            # Append final mask for qs_img to result list
+            qs_masks.append(join_mask_unrot_cut)
+
+            # Adapt foreground bboxes according to image size
+            join_bboxs = [split_masks_bboxs[0]]
+            for ind,item in enumerate(split_masks_bboxs):
+                if ind == 0:
+                    continue
+                add_shape_x = 0
+                add_shape_y = 0
+                if display == "vertical":
+                    add_shape_x = np.sum([subitem.shape[0] for subitem in split_masks[:ind]])
+                else:
+                    add_shape_y = np.sum([subitem.shape[1] for subitem in split_masks[:ind]])
+                join_bboxs.append([[subitem[0]+add_shape_x,subitem[1]+add_shape_y] for subitem in item])
+
+            # Compute central point for rotation
+            central_point = [int(join_mask_unrot.shape[0]/2),int(join_mask_unrot.shape[1]/2)]
+            # Rotate bbox points to original orientation
+            join_bboxs_unrot = []
+            for item in join_bboxs:
+                to_append = []
+                for point in item:
+                    rotated_point = rotate_point(point[0],point[1],central_point[0],central_point[1],-angle_real)
+                    rotated_point_cut = [int(rotated_point[0]-to_cut[0]),int(rotated_point[1]-to_cut[1])]
+                    to_append.append(rotated_point_cut)
+                join_bboxs_unrot.append(to_append)
+            # Append final foreground bboxes for qs_img to result_list
+            qs_bboxs.append(join_bboxs_unrot)
+        ### --- ---
+        with open(res_root+os.sep+'qs_masks.pkl','wb') as ff:
+            pickle.dump(qs_masks,ff)
+        with open(res_root+os.sep+'qs_bboxs.pkl','wb') as ff:
+            pickle.dump(qs_bboxs,ff)
+    else:
+        with open(res_root+os.sep+'qs_masks.pkl','rb') as ff:
+            qs_masks = pickle.load(ff)
+        with open(res_root+os.sep+'qs_bboxs.pkl','rb') as ff:
+            qs_bboxs = pickle.load(ff)
     print('-- DONE: Time: '+str(time.time()-start))
 
     print('-- COMPUTE TEXTBOXES --')
