@@ -6,14 +6,6 @@ import numpy as np
 import time
 
 
-"""
-Annotations
------------
-- Best is BackgroundMask4, pretty fast
-- Do not use BackgroundMask5 or BackgroundMask6
-- Function BackgroundMask2 is way slower than BackgroundMask1, but it works better.
-"""
-
 def GetForegroundPixels(img,mask):
     """
     This function returns the foreground pixels of an image according to a mask.
@@ -506,11 +498,11 @@ def BackgroundMask420(img,img_path):
             if degrees < degrees_margin or (90-degrees_margin) < degrees:
                 # Horizontal line
                 if degrees < degrees_margin:
-                    horizontal_lines.append({"line":[x1,x2,y1,y2],"mean_point":np.mean([y1,y2])})
+                    horizontal_lines.append({"line_hesse":lines[i],"line":[x1,x2,y1,y2],"mean_point":np.mean([y1,y2])})
 
                 # Vertical line
                 elif (90-degrees_margin) < degrees:
-                    vertical_lines.append({"line":[x1,x2,y1,y2],"mean_point":np.mean([x1,x2])})
+                    vertical_lines.append({"line_hesse":lines[i],"line":[x1,x2,y1,y2],"mean_point":np.mean([x1,x2])})
 
         if horizontal_lines and vertical_lines:
             horizontal_lines = sorted(horizontal_lines, key=lambda x: x["mean_point"])
@@ -531,6 +523,10 @@ def BackgroundMask420(img,img_path):
                     "bottom":horizontal_lines[-1]["line"],
                     "left":vertical_lines[0]["line"],
                     "right":vertical_lines[-1]["line"]}
+    lines_hesse_wanted = {"top":horizontal_lines[0]["line_hesse"],
+                          "bottom":horizontal_lines[-1]["line_hesse"],
+                          "left":vertical_lines[0]["line_hesse"],
+                          "right":vertical_lines[-1]["line_hesse"]}
 
     # Draw lines_wanted to an all_zeros image
     mask = np.zeros(shape=img.shape[:2],dtype=np.uint8)
@@ -556,7 +552,26 @@ def BackgroundMask420(img,img_path):
     mean_points["bottom"] = int(np.mean(lines_wanted["bottom"][2:4])*img.shape[0])
     mean_points["right"] = int(np.mean(lines_wanted["right"][:2])*img.shape[1])
 
-    return mask, mean_points
+    # Compute bbox coordenates ON ROTATED IMAGE!
+    bbox = [intersection(lines_hesse_wanted["top"],lines_hesse_wanted["left"]),
+            intersection(lines_hesse_wanted["top"],lines_hesse_wanted["right"]),
+            intersection(lines_hesse_wanted["bottom"],lines_hesse_wanted["right"]),
+            intersection(lines_hesse_wanted["bottom"],lines_hesse_wanted["left"])]
+
+    return mask, mean_points, bbox
+
+def intersection(line1, line2):
+    rho1, theta1 = line1[0]
+    rho2, theta2 = line2[0]
+    A = np.array([
+        [np.cos(theta1), np.sin(theta1)],
+        [np.cos(theta2), np.sin(theta2)]
+    ])
+    b = np.array([[rho1], [rho2]])
+    x0, y0 = np.linalg.solve(A, b)
+    x0, y0 = int(np.round(x0)), int(np.round(y0))
+    return [y0, x0] # Switch x and y, for the axis in images are opposite w.r.t. normal maths
+
 
 class BackgroundRemoval():
     """CLASS:BackgroundRemoval:
@@ -564,15 +579,18 @@ class BackgroundRemoval():
     def __init__(self,img_list):
         self.img_list = img_list
         self.masks = []
+        self.bboxs = []
     
     def remove_background(self):
         for k, img in enumerate(self.img_list):
             self.masks.append([])
+            self.bboxs.append([])
             for p, paint in enumerate(img):
-                mask,_ = BackgroundMask420(paint,None)
+                mask,_,bbox = BackgroundMask420(paint,None)
                 self.masks[-1].append(mask)
+                self.bboxs[-1].append(bbox)
                 cv2.imwrite('../results/Background/{0:02}_{1}.png'.format(k,p),mask)
-        return self.masks
+        return self.masks,self.bboxs
 
 if __name__ == '__main__':
     imgs_folder = r"C:\Users\PC\Documents\Roger\Master\M1\Project\Week5\qsd1_w5_denoised_rotated_split"
@@ -580,5 +598,6 @@ if __name__ == '__main__':
     for ind,img_path in enumerate(img_paths):
         print(ind,"of",len(img_paths))
         img = cv2.imread(img_path)
-        fg_mask,_ = BackgroundMask420(img,img_path)
+        fg_mask,_,bbox = BackgroundMask420(img,img_path)
+        print("\tBBOX detected (with image rotated):",bbox)
         cv2.imwrite(img_path.replace(".jpg","_mask.png"), fg_mask)
