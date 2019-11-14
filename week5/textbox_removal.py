@@ -21,10 +21,10 @@ class TextDetection():
         min_ratio = 0.08
         max_ratio = 0.4
         row_limits = [0.35,0.65]
-        for full_img in self.img_list:
+        for k,full_img in enumerate(self.img_list):
             self.text_boxes.append([])
             self.text_masks.append([])
-            for img in full_img:
+            for i,img in enumerate(full_img):
                 # Resize image
                 original_size = img.shape[:2]
                 img = cv2.resize(img,resize_size)
@@ -112,7 +112,7 @@ class TextDetection():
                 if rectangles["bright"] is None and rectangles["dark"] is None:
                     mask = np.ones(shape=(mask.shape[0],mask.shape[1]),dtype=np.uint8)*255
                     mask = cv2.resize(mask,(original_size[1],original_size[0]))
-                    return mask, [[0,0],[mask.shape[0],mask.shape[1]]]
+                    not_rectangle = True
                 elif rectangles["bright"] is None and rectangles["dark"] is not None:
                     last_row_ind = rectangles["dark"][0]
                     row_length = rectangles["dark"][1]
@@ -151,20 +151,25 @@ class TextDetection():
                         last_row_ind = rectangles["bright"][0]
                         row_length = rectangles["bright"][1]
                         last_col_width = rectangles["bright"][2]
+                if not not_rectangle:
+                    tl = [last_row_ind,int(0.5*mask.shape[1])-int(last_col_width*0.5)]
+                    br = [last_row_ind+row_length,int(0.5*mask.shape[1])+int(last_col_width*0.5)]
+                    tl[0] = int(tl[0]*original_size[0]/resize_size[0])
+                    tl[1] = int(tl[1]*original_size[1]/resize_size[1])
+                    br[0] = int(br[0]*original_size[0]/resize_size[0])
+                    br[1] = int(br[1]*original_size[1]/resize_size[1])
+                    mask = np.ones(shape=(mask.shape[0],mask.shape[1]),dtype=np.uint8)*255
+                    mask = cv2.resize(mask,(original_size[1],original_size[0]))
+                    mask[tl[0]:br[0],tl[1]:br[1]] = 0
 
-                tl = [last_row_ind,int(0.5*mask.shape[1])-int(last_col_width*0.5)]
-                br = [last_row_ind+row_length,int(0.5*mask.shape[1])+int(last_col_width*0.5)]
-                tl[0] = int(tl[0]*original_size[0]/resize_size[0])
-                tl[1] = int(tl[1]*original_size[1]/resize_size[1])
-                br[0] = int(br[0]*original_size[0]/resize_size[0])
-                br[1] = int(br[1]*original_size[1]/resize_size[1])
-                mask = np.ones(shape=(mask.shape[0],mask.shape[1]),dtype=np.uint8)*255
-                mask = cv2.resize(mask,(original_size[1],original_size[0]))
-                mask[tl[0]:br[0],tl[1]:br[1]] = 0
-
-                self.text_masks[-1].append(mask)
-                self.text_boxes[-1].append([tl[1],tl[0],br[1],br[0]])
-
+                    self.text_masks[-1].append(mask)
+                    cv2.imwrite('../results/TextBox/{0:02}_{1}.png'.format(k,i),mask)
+                    self.text_boxes[-1].append([tl[1],tl[0],br[1],br[0]])
+                else:
+                    self.text_masks[-1].append(mask)
+                    cv2.imwrite('../results/TextBox/{0:02}_{1}.png'.format(k,i),mask)
+                    self.text_boxes[-1].append([0,0,mask.shape[0],mask.shape[1]])
+            print('Image ['+str(k)+'] Processed.')
         return self.text_masks, self.text_boxes
 
 def main():

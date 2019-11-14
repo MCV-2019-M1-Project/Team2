@@ -11,17 +11,15 @@ class TextDetection():
     def __init__(self,img_list):
         self.img_list = img_list
         self.text_masks = []
-        self.text_boxes = []
 
     def detect(self):
         for k,img in enumerate(self.img_list):
-            self.text_boxes.append([])
             self.text_masks.append([])
             for p,paint in enumerate(img):
-                mask,textbox = self.detect_text(paint,k,p)
-                self.text_masks[-1].append(mask)
-                self.text_boxes[-1].append(textbox)   
-        return self.text_masks, self.text_boxes
+                mask = self.detect_text(paint,k,p)
+                self.text_masks[-1].append(mask) 
+            print('Image ['+str(k)+'] Processed.') 
+        return self.text_masks
 
     def detect_text(self,paint,k,p):
         #paint = cv2.resize(paint,(512,512),interpolation=cv2.INTER_AREA)
@@ -41,15 +39,15 @@ class TextDetection():
         return self.search_rectangles(white_img,black_img,k,p,paint)
     
     def search_rectangles(self,white,black,k,p,paint):
-        step=10; start = 200; end = 256
         white_paint = copy(paint)
         black_paint = copy(paint)
-        min_width = 150; min_height=10
+        step=10; start = 200; end = 256
         rectangles = []
+        min_width = 150; min_height=20; max_height = 120
         detection_kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(50,20))
         if paint.shape[0] > 1000:
             remove_kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(40,40))
-        else: 
+        else:
             remove_kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(20,20))
         for v,value in enumerate(range(start,end,step)):
             white_found = cv2.inRange(white,value,value+step)
@@ -64,21 +62,27 @@ class TextDetection():
                 if len(white_cont)==2:
                     for cnt in white_cont:
                         x,y,w,h = cv2.boundingRect(cnt)
-                        if w > min_width and h > min_height:
+                        if w > min_width and h > min_height and h < max_height:
                             cv2.rectangle(white_paint,(x,y),(x+w,y+h),(0,0,255),5)
                             rectangles.append((x,y,w,h))
-                cv2.imwrite('../results/TextBox/{0}_{1}_{2}.png'.format(k,p,'white'),white_paint)
+                #cv2.imwrite('../results/TextBox/{0}_{1}_{2}.png'.format(k,p,'white'),white_paint)
             if (np.sum(black_found,axis=None)!=0):
                 black_canny = cv2.Canny(black_found,100,100,apertureSize=3)
                 _, black_cont, _ = cv2.findContours(black_canny, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
                 if len(black_cont)==2:
                     for cnt in black_cont:
                         x,y,w,h = cv2.boundingRect(cnt)
-                        if w > min_width and h > min_height:
+                        if w > min_width and h > min_height and h < max_height:
                             cv2.rectangle(black_paint,(x,y),(x+w,y+h),(0,0,255),5)
                             rectangles.append((x,y,w,h))
-                cv2.imwrite('../results/TextBox/{0}_{1}_{2}.png'.format(k,p,'black'),black_paint)
-        return 0,0
+                #cv2.imwrite('../results/TextBox/{0}_{1}_{2}.png'.format(k,p,'black'),black_paint)
+        mask = np.uint8(np.ones((paint.shape[0],paint.shape[1])))*255
+        if rectangles:
+            for rect in rectangles:
+                x,y,w,h = rect
+                mask[y:y+h,x:x+w] = 0
+        #cv2.imwrite('../results/TextBox/{0}_{1}_{2}.png'.format(k,p,'final'),mask)
+        return mask
 
 
 if __name__ == "__main__":
@@ -87,5 +91,5 @@ if __name__ == "__main__":
     with open('../results/splitted.pkl','rb') as ff:
         qs_splitted = pickle.load(ff)
     detector = TextDetection(qs_splitted)
-    masks,bboxes = detector.detect()
+    masks = detector.detect()
     print('-- DONE: Time: '+str(time.time()-start))

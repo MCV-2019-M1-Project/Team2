@@ -58,8 +58,72 @@ class Orientation():
         cv2.imwrite('../results/Orientation/{0:02}_final.png'.format(k), mark)
 
         if median_angle > 0:
-                median_angle = 180 - median_angle
+            median_angle = 180 - median_angle
         else:
             median_angle = np.abs(median_angle)
         print('Image ['+str(k)+'] Processed.')
         return median_angle, rotated_angle, img_inpaint
+
+class Unrotate():
+    """CLASS::Unrotate:
+        >- Unrotates the fg masks and splitted images"""
+    def __init__(self,qs_images):
+        self.qs_images = qs_images
+        self.qs_masks = []
+        self.qs_bboxs = []
+
+    def unrotate(self,qs_angles,qs_bboxs_rot,qs_masks_rot,qs_displays):
+        for ind,qs_img in enumerate(self.qs_images):
+            # Variables needed
+            angle_real = qs_angles[ind]
+            split_masks_bboxs = qs_bboxs_rot[ind]
+            split_masks = qs_masks_rot[ind]
+            display = qs_displays[ind]
+            axis = 0 if display == "vertical" else 1
+
+            # Join masks in 1 image
+            join_mask = np.concatenate(split_masks,axis=axis)
+            # Rotate joined mask without reshaping
+            join_mask_unrot = ndimage.rotate(join_mask,-angle_real,reshape=False)
+
+            # Compute cutting points for returning to original image
+            to_cut = (np.array(join_mask_unrot.shape[:2]) - np.array(qs_img.shape[:2]))/2
+            # Cut rotated joined mask
+            join_mask_unrot_cut = join_mask_unrot[int(to_cut[0]):int(join_mask_unrot.shape[0]-to_cut[0]),
+                                                  int(to_cut[1]):int(join_mask_unrot.shape[1]-to_cut[1])]
+            # Append final mask for qs_img to result list
+            self.qs_masks.append(join_mask_unrot_cut)
+
+            # Adapt foreground bboxes according to image size
+            join_bboxs = [split_masks_bboxs[0]]
+            for ind,item in enumerate(split_masks_bboxs):
+                if ind == 0:
+                    continue
+                add_shape_x = 0
+                add_shape_y = 0
+                if display == "vertical":
+                    add_shape_x = np.sum([subitem.shape[0] for subitem in split_masks[:ind]])
+                else:
+                    add_shape_y = np.sum([subitem.shape[1] for subitem in split_masks[:ind]])
+                join_bboxs.append([[subitem[0]+add_shape_x,subitem[1]+add_shape_y] for subitem in item])
+
+            # Compute central point for rotation
+            central_point = [int(join_mask_unrot.shape[0]/2),int(join_mask_unrot.shape[1]/2)]
+            # Rotate bbox points to original orientation
+            join_bboxs_unrot = []
+            for item in join_bboxs:
+                to_append = []
+                for point in item:
+                    rotated_point = self.rotate_point(point[0],point[1],central_point[0],central_point[1],-angle_real)
+                    rotated_point_cut = [int(rotated_point[0]-to_cut[0]),int(rotated_point[1]-to_cut[1])]
+                    to_append.append(rotated_point_cut)
+                join_bboxs_unrot.append(to_append)
+            # Append final foreground bboxes for qs_img to result_list
+            self.qs_bboxs.append(join_bboxs_unrot)
+        return self.qs_masks, self.qs_bboxs
+
+    def rotate_point(self,x,y,xm,ym,a):
+        a = a*math.pi/180
+        xr = (x - xm) * math.cos(a) - (y - ym) * math.sin(a) + xm
+        yr = (x - xm) * math.sin(a) + (y - ym) * math.cos(a) + ym
+        return [int(xr), int(yr)]

@@ -7,7 +7,7 @@ import ml_metrics as metrics
 import pickle
 import cv2
 import os
-from shapely.geometry import Polygon
+#from shapely.geometry import Polygon
 from random import shuffle
 
 # -- CLASS TO EVALUATE RESULTS -- #
@@ -140,10 +140,10 @@ class EvaluateIoU():
 		iou = interArea / float(boxAArea + boxBArea - interArea)
 
 		return iou
-
+"""
 class EvaluateIoUNonSquare():
-	"""CLASS::EvaluateIoUNonSquare:
-		>- Class to evaluate the intersection over Union metric for non-square bounding boxes."""
+	#CLASS::EvaluateIoUNonSquare:
+	#	>- Class to evaluate the intersection over Union metric for non-square bounding boxes.
 	def __init__(self,bboxes,gt_path):
 		self.bbox = bboxes
 		with open(gt_path,'rb') as file:
@@ -152,8 +152,8 @@ class EvaluateIoUNonSquare():
 		self.score = 0
 	
 	def compute_iou(self):
-		"""METHOD::COMPUTE_IOU:
-			>- Uses the function bb_iou to compute the iou of the bounding boxes."""
+		#METHOD::COMPUTE_IOU:
+		#	>- Uses the function bb_iou to compute the iou of the bounding boxes.
 		max_tries = 20
 		self.iou_result = []
 		for gt_box,qr_box in zip(self.gt,self.bbox):
@@ -181,3 +181,4 @@ class EvaluateIoUNonSquare():
 		self.score = np.mean(self.iou_result)
 		print('The mean IoU is: [{0}]'.format(self.score))
 		return self.score
+		"""
