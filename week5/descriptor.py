@@ -20,7 +20,7 @@ class BaseDescriptor():
             print(str(k)+' out of '+str(len(self.img_list)))
             for i, paint in enumerate(img):
                 mask = self._combine_masks(self.mask_list[k][i], self.bbox_list[k][i])
-                cv2.imwrite('../results/Masks/{0:02}_{1}.png'.format(k,i),mask)
+                #cv2.imwrite('../results/Masks/{0:02}_{1}.png'.format(k,i),paint)
                 self.result[k].append(self._compute_features(paint,mask))
         print('--- DONE --- ')
 
@@ -64,12 +64,12 @@ class SIFTDescriptor(BaseDescriptor):
     def __init__(self, img_list, mask_list=None, bbox_list=None):
         super().__init__(img_list, mask_list, bbox_list)
         nfeatures = 1000; nOctaveLayers = 3
-        contrastThreshold = 0.1; edgeThreshold = 31; sigma = 1.6
-        self.sift = cv2.xfeatures2d.SIFT_create(nfeatures,
-                        nOctaveLayers,
-                        contrastThreshold,
-                        edgeThreshold,
-                        sigma)
+        contrastThreshold = 0.06; edgeThreshold = 31; sigma = 1.6
+        self.sift = cv2.xfeatures2d.SIFT_create(nfeatures=nfeatures,
+            nOctaveLayers=nOctaveLayers,
+            contrastThreshold=contrastThreshold,
+            edgeThreshold=edgeThreshold,
+            sigma=sigma)
     
     def _compute_features(self, img, mask):
         gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
@@ -79,5 +79,3 @@ class SIFTDescriptor(BaseDescriptor):
         kkpp, desc = self.sift.detectAndCompute(gray,mask,None)
         kp = np.array([k.pt for k in kkpp])
         return kp,desc
-
-if __name__ == "__main__":

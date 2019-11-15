@@ -237,8 +237,6 @@ class SplitImages():
                 self.output.append(splitImage(img, cut_points, display))
             else:
                 self.output.append([img])
-            for s,split in enumerate(self.output[-1]):
-                cv2.imwrite('../results/Split/{0:02}_{1}.png'.format(k,s),split)
         return self.output, self.displays
 
 def main(img_folder,method):

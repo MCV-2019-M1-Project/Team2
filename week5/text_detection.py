@@ -81,7 +81,7 @@ class TextDetection():
             for rect in rectangles:
                 x,y,w,h = rect
                 mask[y:y+h,x:x+w] = 0
-        #cv2.imwrite('../results/TextBox/{0}_{1}_{2}.png'.format(k,p,'final'),mask)
+        cv2.imwrite('../results/TextBox/{0}_{1}.png'.format(k,p),mask)
         return mask
 
 

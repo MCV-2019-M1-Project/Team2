@@ -8,7 +8,7 @@ from background_removal import BackgroundRemoval, GetForegroundPixels
 from text_detection import TextDetection
 from evaluation import EvaluateAngles, EvaluateIoU, EvaluateDescriptors
 from descriptor import SIFTDescriptor, ORBDescriptor
-from matchers import MatcherFLANN
+from matchers import MatcherFLANN, MatcherBF
 from glob import glob
 import numpy as np
 import math
@@ -20,7 +20,7 @@ import os
 # -- DIRECTORIES -- #
 db_path = "../bbdd"
 res_root = "../results"
-qs1_w5 = "../qsd1_w5"
+qs1_w5 = "../qst1_w5"
 
 def main(eval_=True):
     global_start = time.time()
@@ -29,7 +29,7 @@ def main(eval_=True):
     start = time.time()
     db_paths = sorted(glob(db_path+os.sep+'*.jpg'))
     qs_paths = sorted(glob(qs1_w5+os.sep+'*.jpg'))
-    db_images = [cv2.imread(path) for path in db_paths]
+    db_images = [[cv2.imread(path)] for path in db_paths]
     qs_images = [cv2.imread(path) for path in qs_paths]
     print('-- DONE: Time: '+str(time.time()-start))
 
@@ -69,7 +69,7 @@ def main(eval_=True):
         print('-- EVALUATING ANGLES --')
         start = time.time()
         angle_evaluator = EvaluateAngles(qs_angles,qs1_w5+os.sep+'angles_qsd1w5.pkl')
-        score = angle_evaluator.evaluate(degree_margin=1)
+        score = angle_evaluator.evaluate(degree_margin=1.5)
         print('-- DONE: Time: '+str(time.time()-start))
 
     print('-- SPLITTING IMAGES --')
@@ -149,18 +149,18 @@ def main(eval_=True):
 
     print('-- COMPUTE DESCRIPTORS --')
     start = time.time()
-    db_desc = SIFTDescriptor(db_images,None,None)
-    qs_desc = SIFTDescriptor(qs_splitted,mask_list=qs_masks_rot,bbox_list=text_masks)
-    #db_desc = ORBDescriptor(db_images,None,None)
-    #qs_desc = ORBDescriptor(qs_splitted,mask_list=qs_masks_rot,bbox_list=text_masks)
+    #db_desc = SIFTDescriptor(db_images,None,None)
+    #qs_desc = SIFTDescriptor(qs_splitted,mask_list=qs_masks_rot,bbox_list=text_masks)
+    db_desc = ORBDescriptor(db_images,None,None)
+    qs_desc = ORBDescriptor(qs_splitted,mask_list=qs_masks_rot,bbox_list=text_masks)
     db_desc.compute_descriptors()
     qs_desc.compute_descriptors()
     print('-- DONE: Time: '+str(time.time()-start))
 
     print('-- COMPUTE MATCHES --')
     start = time.time()
-    matcher = MatcherFLANN(db_desc.result,qs_desc.result)
-    matcher.match()
+    matcher = MatcherFLANN(db_desc.result,qs_desc.result,flag=True)
+    matcher.match(min_matches=12,match_ratio=0.65)
     with open('../results/result.pkl','wb') as ff:
         pickle.dump(matcher.result,ff)
     print('-- DONE: Time: '+str(time.time()-start))
@@ -176,4 +176,4 @@ def main(eval_=True):
     print('-- Total time: '+str(time.time()-global_start))
 
 if __name__ == "__main__":
-    main(eval_=True)
+    main(eval_=False)

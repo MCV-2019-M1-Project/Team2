@@ -34,7 +34,7 @@ class Orientation():
             angles.append(angle)
 
         #Line to generate image for slides 
-        cv2.imwrite('../results/Orientation/{0:02}_lines.png'.format(k),mark)
+        #cv2.imwrite('../results/Orientation/{0:02}_lines.png'.format(k),mark)
 
         median_angle = np.median(angles)
         original_median_angle = median_angle

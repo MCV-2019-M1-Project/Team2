@@ -589,7 +589,7 @@ class BackgroundRemoval():
                 mask,_,bbox = BackgroundMask420(paint,None)
                 self.masks[-1].append(mask)
                 self.bboxs[-1].append(bbox)
-                cv2.imwrite('../results/Background/{0:02}_{1}.png'.format(k,p),mask)
+                #cv2.imwrite('../results/Background/{0:02}_{1}.png'.format(k,p),mask)
         return self.masks,self.bboxs
 
 if __name__ == '__main__':
